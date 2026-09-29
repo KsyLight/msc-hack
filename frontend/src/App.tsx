@@ -254,11 +254,7 @@ export default function App() {
           <div className={`page-heading ${page === "overview" ? "overview-heading" : ""}`}>
             <div>
               <div className="eyebrow">МОНИТОРИНГ ИНЖЕНЕРНЫХ КОЛЛЕКТОРОВ</div>
-              <h1>
-                {page === "overview"
-                    ? "Аналитическая система"
-                    : "Аналитическая система"}
-              </h1>
+              <h1>Аналитическая система</h1>
               <p>
                 {page === "overview"
                   ? "Следите за состоянием коллекторов в реальном времени, получайте предупреждения о рисках и планируйте обслуживание заранее."

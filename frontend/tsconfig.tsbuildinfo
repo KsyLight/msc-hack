@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/api.ts","./src/main.tsx","./src/components/networkmap.tsx","./src/components/predictiondetail.tsx","./src/components/predictiontable.tsx"],"version":"5.8.3"}
+{"root":["./src/app.tsx","./src/api.ts","./src/main.tsx","./src/components/datastatus.tsx","./src/components/networkmap.tsx","./src/components/predictiondetail.tsx","./src/components/predictiontable.tsx"],"version":"5.8.3"}
