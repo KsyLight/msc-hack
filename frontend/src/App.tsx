@@ -257,7 +257,7 @@ export default function App() {
               <h1>
                 {page === "overview"
                   ? dashboard?.mode === "real"
-                    ? "Мониторинг коллекторов"
+                    ? "Аналитическая система"
                     : "Аналитическая система"
                   : title}
               </h1>
