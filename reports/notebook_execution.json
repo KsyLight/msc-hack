@@ -1,0 +1,17 @@
+{
+  "source": "C:\\Users\\MSI\\Documents\\GitHub\\msc-hack",
+  "missing": [
+    "ext-journal-2019.csv",
+    "ext-journal-2020.csv",
+    "ext-journal-2021.csv",
+    "ext-journal-2022.csv",
+    "ext-journal-2023.csv",
+    "ext-journal-2024.csv",
+    "ext-journal-2025.csv",
+    "ext-journal-2026.csv",
+    "справочник_каналов_датчиков.csv",
+    "справочник_объектов_диспетчер.csv",
+    "справочник_состояний.csv"
+  ],
+  "status": "blocked_missing_sources"
+}

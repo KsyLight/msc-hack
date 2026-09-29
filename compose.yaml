@@ -1,0 +1,13 @@
+services:
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:${APP_PORT:-8000}:8000"
+    environment:
+      APP_MODE: ${APP_MODE:-demo}
+      APP_RUNTIME_DIR: /app/runtime
+      OMP_NUM_THREADS: "4"
+      OPENBLAS_NUM_THREADS: "4"
+    volumes:
+      - ./runtime:/app/runtime
+    restart: unless-stopped

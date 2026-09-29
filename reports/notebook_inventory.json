@@ -1,0 +1,65 @@
+{
+  "notebook": "LCT2026_final_EDA.ipynb",
+  "sha256": "c2b55760d133728c52cd4dec4f945c2e55ac8f129c29b8fe8d0209edf6485432",
+  "cells": 165,
+  "embedded_tables": {
+    "maintenance_sources": {
+      "rows": 4,
+      "cell": 67,
+      "fields": [
+        "file",
+        "sha256"
+      ]
+    },
+    "ppr_records": {
+      "rows": 26,
+      "cell": 68,
+      "fields": [
+        "division",
+        "plan_month",
+        "object_label",
+        "sensor_count",
+        "dismantle_start",
+        "delivery_text",
+        "return_date",
+        "acceptance_date",
+        "source_row"
+      ]
+    },
+    "monthly_records": {
+      "rows": 548,
+      "cell": 68,
+      "fields": [
+        "schedule_group",
+        "object_label",
+        "equipment",
+        "quantity",
+        "unit",
+        "plan_year",
+        "month",
+        "action",
+        "source_row",
+        "source_cell"
+      ]
+    },
+    "equipment_records": {
+      "rows": 140,
+      "cell": 69,
+      "fields": [
+        "schedule_group",
+        "object_label",
+        "equipment",
+        "quantity",
+        "unit",
+        "source_row"
+      ]
+    }
+  },
+  "exported_to": "runtime\\notebook_sources",
+  "execution": "Only embedded literal tables extracted. Full notebook requires external journal CSVs and dictionaries.",
+  "limitations": [
+    "Plans are not actual repairs",
+    "Anonymized plan objects have no verified mapping to journal object IDs",
+    "Do not use these plans as features or labels without verified mapping and availability timestamps"
+  ]
+}

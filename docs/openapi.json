@@ -1,0 +1,1012 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Контур · Предиктивный мониторинг",
+    "description": "Два направления, горизонт [24, 48) часов. Балл модели относится к сигналу «Неисправен», не к подтверждённому физическому отказу.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Health",
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/models": {
+      "get": {
+        "tags": [
+          "Models"
+        ],
+        "summary": "Models",
+        "operationId": "models_api_models_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/data-quality": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Quality",
+        "operationId": "quality_api_data_quality_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/predictions": {
+      "get": {
+        "tags": [
+          "Predictions"
+        ],
+        "summary": "Predictions",
+        "operationId": "predictions_api_predictions_get",
+        "parameters": [
+          {
+            "name": "direction",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "sensor",
+                    "infrastructure"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Direction"
+            }
+          },
+          {
+            "name": "risk",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^(high|medium|low|unavailable)$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Risk"
+            }
+          },
+          {
+            "name": "object_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Object Id"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Search"
+            }
+          },
+          {
+            "name": "latest",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Latest"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PredictionPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dashboard": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Dashboard",
+        "operationId": "dashboard_api_dashboard_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/objects": {
+      "get": {
+        "tags": [
+          "Objects"
+        ],
+        "summary": "Objects",
+        "operationId": "objects_api_objects_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Collector"
+                  },
+                  "type": "array",
+                  "title": "Response Objects Api Objects Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/predictions/run": {
+      "post": {
+        "tags": [
+          "Predictions"
+        ],
+        "summary": "Run",
+        "operationId": "run_api_predictions_run_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/predict/{direction}": {
+      "post": {
+        "tags": [
+          "Models"
+        ],
+        "summary": "Predict",
+        "operationId": "predict_api_predict__direction__post",
+        "parameters": [
+          {
+            "name": "direction",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "sensor",
+                "infrastructure"
+              ],
+              "type": "string",
+              "title": "Direction"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PredictBatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/predictions/export.csv": {
+      "get": {
+        "tags": [
+          "Predictions"
+        ],
+        "summary": "Export",
+        "operationId": "export_api_predictions_export_csv_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tickets": {
+      "get": {
+        "tags": [
+          "Maintenance"
+        ],
+        "summary": "Tickets",
+        "operationId": "tickets_api_tickets_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TicketDetail"
+                  },
+                  "type": "array",
+                  "title": "Response Tickets Api Tickets Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Maintenance"
+        ],
+        "summary": "Create Ticket",
+        "operationId": "create_ticket_api_tickets_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketRecord"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tickets/generate": {
+      "post": {
+        "tags": [
+          "Maintenance"
+        ],
+        "summary": "Generate",
+        "operationId": "generate_api_tickets_generate_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tickets/{ticket_id}": {
+      "patch": {
+        "tags": [
+          "Maintenance"
+        ],
+        "summary": "Update Ticket",
+        "operationId": "update_ticket_api_tickets__ticket_id__patch",
+        "parameters": [
+          {
+            "name": "ticket_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Ticket Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketRecord"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BatchResult": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Prediction"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "persisted": {
+            "type": "boolean",
+            "title": "Persisted"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "persisted"
+        ],
+        "title": "BatchResult"
+      },
+      "Collector": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "district": {
+            "type": "string",
+            "title": "District"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "coordinate_source": {
+            "type": "string",
+            "title": "Coordinate Source"
+          },
+          "channels": {
+            "type": "integer",
+            "title": "Channels"
+          },
+          "high_risk": {
+            "type": "integer",
+            "title": "High Risk"
+          },
+          "max_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "district",
+          "latitude",
+          "longitude",
+          "coordinate_source",
+          "channels",
+          "high_risk",
+          "max_score"
+        ],
+        "title": "Collector"
+      },
+      "Factor": {
+        "properties": {
+          "feature": {
+            "type": "string",
+            "title": "Feature"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "feature",
+          "label",
+          "value"
+        ],
+        "title": "Factor"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "PredictBatch": {
+        "properties": {
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/PredictionInput"
+            },
+            "type": "array",
+            "maxItems": 1000,
+            "minItems": 1,
+            "title": "Rows"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rows"
+        ],
+        "title": "PredictBatch"
+      },
+      "Prediction": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "sensor",
+              "infrastructure"
+            ],
+            "title": "Direction"
+          },
+          "entity_id": {
+            "type": "string",
+            "title": "Entity Id"
+          },
+          "object_id": {
+            "type": "string",
+            "title": "Object Id"
+          },
+          "object_name": {
+            "type": "string",
+            "title": "Object Name"
+          },
+          "sensor_type": {
+            "type": "string",
+            "title": "Sensor Type"
+          },
+          "prediction_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Prediction Time"
+          },
+          "target_start": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Target Start"
+          },
+          "target_end": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Target End"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score",
+            "description": "Raw classifier score; not a calibrated incident probability"
+          },
+          "risk": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low",
+              "unavailable"
+            ],
+            "title": "Risk"
+          },
+          "threshold": {
+            "type": "number",
+            "title": "Threshold"
+          },
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "factors": {
+            "items": {
+              "$ref": "#/components/schemas/Factor"
+            },
+            "type": "array",
+            "title": "Factors"
+          },
+          "recommendation": {
+            "type": "string",
+            "title": "Recommendation"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "demo",
+              "real"
+            ],
+            "title": "Mode"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "direction",
+          "entity_id",
+          "object_id",
+          "object_name",
+          "sensor_type",
+          "prediction_time",
+          "target_start",
+          "target_end",
+          "score",
+          "risk",
+          "threshold",
+          "model_version",
+          "state",
+          "factors",
+          "recommendation",
+          "mode"
+        ],
+        "title": "Prediction"
+      },
+      "PredictionInput": {
+        "properties": {
+          "entity_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Entity Id"
+          },
+          "object_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Object Id"
+          },
+          "sensor_type": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 1,
+            "title": "Sensor Type"
+          },
+          "prediction_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Prediction Time"
+          },
+          "eligible": {
+            "type": "boolean",
+            "title": "Eligible"
+          },
+          "last_explicit_state": {
+            "type": "string",
+            "title": "Last Explicit State",
+            "default": "unknown"
+          },
+          "features": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Features"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "entity_id",
+          "object_id",
+          "sensor_type",
+          "prediction_time",
+          "eligible",
+          "features"
+        ],
+        "title": "PredictionInput"
+      },
+      "PredictionPage": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Prediction"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "items"
+        ],
+        "title": "PredictionPage"
+      },
+      "TicketCreate": {
+        "properties": {
+          "prediction_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Prediction Id"
+          },
+          "comment": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Comment",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "prediction_id"
+        ],
+        "title": "TicketCreate"
+      },
+      "TicketDetail": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "prediction_id": {
+            "type": "string",
+            "title": "Prediction Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "in_progress",
+              "done",
+              "dismissed"
+            ],
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "comment": {
+            "type": "string",
+            "title": "Comment"
+          },
+          "automatic": {
+            "type": "integer",
+            "title": "Automatic"
+          },
+          "prediction": {
+            "$ref": "#/components/schemas/Prediction"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "prediction_id",
+          "status",
+          "created_at",
+          "updated_at",
+          "comment",
+          "automatic",
+          "prediction"
+        ],
+        "title": "TicketDetail"
+      },
+      "TicketRecord": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "prediction_id": {
+            "type": "string",
+            "title": "Prediction Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "in_progress",
+              "done",
+              "dismissed"
+            ],
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "comment": {
+            "type": "string",
+            "title": "Comment"
+          },
+          "automatic": {
+            "type": "integer",
+            "title": "Automatic"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "prediction_id",
+          "status",
+          "created_at",
+          "updated_at",
+          "comment",
+          "automatic"
+        ],
+        "title": "TicketRecord"
+      },
+      "TicketUpdate": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "in_progress",
+              "done",
+              "dismissed"
+            ],
+            "title": "Status"
+          },
+          "comment": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Comment",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "TicketUpdate"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
