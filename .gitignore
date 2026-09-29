@@ -2,11 +2,8 @@ __pycache__/
 .pytest_cache/
 .ipynb_checkpoints/
 .env
-runtime/
-processed/
 ext-journal-*.csv
 *.joblib
-node_modules/
 *.tsbuildinfo
 docker/wheels/*.whl
 reports/*.ipynb

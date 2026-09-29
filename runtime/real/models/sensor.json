@@ -1,0 +1,105 @@
+{
+  "direction": "sensor",
+  "algorithm": "HistGradientBoosting",
+  "version": "0ce34b33f2",
+  "provenance": "notebook_handoff",
+  "features": [
+    "events_1d",
+    "events_7d",
+    "events_30d",
+    "alarms_7d",
+    "fault_messages_30d",
+    "undefined_messages_7d",
+    "disabled_messages_7d",
+    "hours_since_last_event",
+    "alarm_rate_7d",
+    "event_ratio_1d_7d",
+    "active_days_30d",
+    "history_complete_days",
+    "fault_messages_1d",
+    "fault_messages_7d",
+    "alarms_1d",
+    "alarms_30d",
+    "power_messages_1d",
+    "power_messages_7d",
+    "power_messages_30d",
+    "undefined_messages_1d",
+    "undefined_messages_30d",
+    "disabled_messages_1d",
+    "disabled_messages_30d",
+    "event_ratio_7d_30d",
+    "active_days_7d",
+    "night_events_7d",
+    "text_n_7d"
+  ],
+  "target": "target_fault_24_48h",
+  "threshold": 0.029119974107153127,
+  "horizon": {
+    "min_hours": 24,
+    "max_hours": 48
+  },
+  "trained_at": "2026-09-29T13:13:22.819807+00:00",
+  "validation_candidates": [
+    {
+      "algorithm": "LogisticRegression",
+      "threshold": 0.011982914513250282,
+      "rows": 1894618,
+      "positives": 2062,
+      "prevalence": 0.0010883460412600323,
+      "pr_auc": 0.006612619950854345,
+      "precision": 0.2222222222222222,
+      "recall": 0.01066925315227934,
+      "brier": 0.0010910139552173898,
+      "false_positives": 77,
+      "alerts": 99
+    },
+    {
+      "algorithm": "HistGradientBoosting",
+      "threshold": 0.029119974107153127,
+      "rows": 1894618,
+      "positives": 2062,
+      "prevalence": 0.0010883460412600323,
+      "pr_auc": 0.013717452032544548,
+      "precision": 0.058823529411764705,
+      "recall": 0.027158098933074686,
+      "brier": 0.0010950074688031966,
+      "false_positives": 896,
+      "alerts": 952
+    }
+  ],
+  "test": {
+    "rows": 985427,
+    "positives": 1240,
+    "prevalence": 0.0012583377561199358,
+    "pr_auc": 0.04019951106890948,
+    "precision": 0.09222520107238606,
+    "recall": 0.13870967741935483,
+    "brier": 0.0012682368454880026,
+    "false_positives": 1693,
+    "alerts": 1865
+  },
+  "meets_case_metrics": false,
+  "training_seconds": 12.127,
+  "split_ranges": {
+    "train": {
+      "rows": 439508,
+      "start": "2019-02-01 00:00:00",
+      "end": "2024-12-30 00:00:00"
+    },
+    "validation": {
+      "rows": 1894618,
+      "start": "2025-01-01 00:00:00",
+      "end": "2025-12-30 00:00:00"
+    },
+    "test": {
+      "rows": 985427,
+      "start": "2026-01-01 00:00:00",
+      "end": "2026-06-28 00:00:00"
+    }
+  },
+  "limitations": [
+    "Proxy target, not a confirmed physical failure or fire",
+    "Current object/type mapping is not historically verified",
+    "Scores are not calibrated incident probabilities"
+  ]
+}

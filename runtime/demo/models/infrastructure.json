@@ -1,0 +1,88 @@
+{
+  "direction": "infrastructure",
+  "algorithm": "LogisticRegression",
+  "version": "ace9435ba3",
+  "provenance": "synthetic_demo",
+  "features": [
+    "events_1d",
+    "events_7d",
+    "events_30d",
+    "alarms_7d",
+    "fault_messages_30d",
+    "undefined_messages_7d",
+    "disabled_messages_7d",
+    "hours_since_last_event",
+    "alarm_rate_7d",
+    "event_ratio_1d_7d",
+    "active_days_30d",
+    "history_complete_days"
+  ],
+  "target": "target_fault_24_48h",
+  "threshold": 0.3003457242217321,
+  "horizon": {
+    "min_hours": 24,
+    "max_hours": 48
+  },
+  "trained_at": "2026-09-29T10:22:08.598935+00:00",
+  "validation_candidates": [
+    {
+      "algorithm": "LogisticRegression",
+      "threshold": 0.3003457242217321,
+      "rows": 1008,
+      "positives": 269,
+      "prevalence": 0.26686507936507936,
+      "pr_auc": 0.8482859182969369,
+      "precision": 0.7021943573667712,
+      "recall": 0.8327137546468402,
+      "brier": 0.0900682915471772,
+      "false_positives": 95,
+      "alerts": 319
+    },
+    {
+      "algorithm": "HistGradientBoosting",
+      "threshold": 0.34257083237548513,
+      "rows": 1008,
+      "positives": 269,
+      "prevalence": 0.26686507936507936,
+      "pr_auc": 0.8313360201033033,
+      "precision": 0.7003367003367004,
+      "recall": 0.7732342007434945,
+      "brier": 0.09510472436294619,
+      "false_positives": 89,
+      "alerts": 297
+    }
+  ],
+  "test": {
+    "rows": 1440,
+    "positives": 369,
+    "prevalence": 0.25625,
+    "pr_auc": 0.8356229867419511,
+    "precision": 0.6731182795698925,
+    "recall": 0.8482384823848238,
+    "brier": 0.08926902923334656,
+    "false_positives": 152,
+    "alerts": 465
+  },
+  "meets_case_metrics": false,
+  "training_seconds": 0.107,
+  "split_ranges": {
+    "train": {
+      "rows": 3888,
+      "start": "2026-01-01 00:00:00",
+      "end": "2026-04-18 00:00:00"
+    },
+    "validation": {
+      "rows": 1008,
+      "start": "2026-04-21 00:00:00",
+      "end": "2026-05-18 00:00:00"
+    },
+    "test": {
+      "rows": 1440,
+      "start": "2026-05-21 00:00:00",
+      "end": "2026-06-29 00:00:00"
+    }
+  },
+  "limitations": [
+    "Synthetic demonstration; metrics do not measure real-world quality"
+  ]
+}
