@@ -32,12 +32,12 @@ export default function NetworkMap({
                 <path
                   d="M24 0H0V24"
                   fill="none"
-                  stroke="#dce6df"
+                  stroke="#d8e3da"
                   strokeWidth=".5"
                 />
               </pattern>
             </defs>
-            <rect width="700" height="350" fill="#edf2eb" />
+            <rect width="700" height="350" fill="#eaf0e9" />
             <rect width="700" height="350" fill="url(#mapgrid)" />
             <g
               transform={`translate(350 175) scale(${zoom}) translate(-350 -175)`}
@@ -45,15 +45,15 @@ export default function NetworkMap({
               <path
                 d="M0 74L120 48 183 126 246 134 290 213 420 196 490 244 553 224 590 298 710 320"
                 fill="none"
-                stroke="#c3dce0"
+                stroke="#d2e0dc"
                 strokeWidth="28"
               />
-              <g fill="none" stroke="#fffdf5" strokeWidth="12">
+              <g fill="none" stroke="#f6faf7" strokeWidth="12">
                 <ellipse cx="342" cy="158" rx="211" ry="128" />
                 <ellipse cx="348" cy="166" rx="121" ry="85" />
                 <path d="M35 27L630 306M100 340L550 8M20 188L700 108M311 0L391 350" />
               </g>
-              <g fill="none" stroke="#ced8cd" strokeWidth="1.5">
+              <g fill="none" stroke="#d8e3da" strokeWidth="1.5">
                 <ellipse cx="342" cy="158" rx="211" ry="128" />
                 <ellipse cx="348" cy="166" rx="121" ry="85" />
                 <path d="M35 27L630 306M100 340L550 8M20 188L700 108M311 0L391 350" />
@@ -61,16 +61,16 @@ export default function NetworkMap({
               <path
                 d="M56 265L181 204 265 222 346 165 412 190 518 128 621 152"
                 fill="none"
-                stroke="#83a697"
+                stroke="#7d8465"
                 strokeWidth="2"
                 strokeDasharray="5 5"
               />
               <text
                 x="309"
                 y="182"
-                fill="#8f9b91"
-                fontSize="11"
-                letterSpacing="3"
+                fill="#3b3f2f"
+                fontSize="12"
+                letterSpacing="2"
               >
                 МОСКВА
               </text>
@@ -85,26 +85,31 @@ export default function NetworkMap({
                     tabIndex={0}
                     aria-label={`Объект ${o.name}, высокий риск: ${o.high_risk}`}
                     onClick={() => onSelect(o.id)}
-                    onKeyDown={(e) => e.key === "Enter" && onSelect(o.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        onSelect(o.id);
+                      }
+                    }}
                   >
                     <circle
                       cx={x}
                       cy={y}
                       r="15"
-                      fill={o.high_risk ? "#e8907740" : "#6a998240"}
+                      fill={o.high_risk ? "#c2847740" : "#7d846540"}
                     />
                     <circle
                       cx={x}
                       cy={y}
                       r="7"
-                      fill={o.high_risk ? "#d96c4f" : "#47856a"}
+                      fill={o.high_risk ? "#c28477" : "#687E55"}
                       stroke="white"
                       strokeWidth="2.5"
                     />
                     <title>
                       {o.name}: {o.high_risk} каналов высокого риска
                     </title>
-                    <text x={x + 12} y={y - 11} fontSize="10" fill="#596a61">
+                    <text x={x + 12} y={y - 11} fontSize="12" fill="#3b3f2f">
                       {o.name}
                     </text>
                   </g>
