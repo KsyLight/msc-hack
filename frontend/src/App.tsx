@@ -56,6 +56,7 @@ const nav = [
 
 export default function App() {
   const [page, setPage] = useState<Page>("overview");
+  const [reducedMotion, setReducedMotion] = useState(false);
   const [dashboard, setDashboard] = useState<Dashboard>();
   const [objects, setObjects] = useState<Collector[]>([]);
   const [quality, setQuality] = useState<Quality>();
@@ -96,6 +97,13 @@ export default function App() {
   useEffect(() => {
     void reload().catch((e) => setError(e.message));
   }, [reload]);
+  useEffect(() => {
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updatePreference = () => setReducedMotion(preference.matches);
+    updatePreference();
+    preference.addEventListener("change", updatePreference);
+    return () => preference.removeEventListener("change", updatePreference);
+  }, []);
   useEffect(() => {
     const controller = new AbortController();
     const timer = setTimeout(() => {
@@ -193,6 +201,7 @@ export default function App() {
             <button
               key={n.id}
               aria-label={n.label}
+              aria-current={page === n.id ? "page" : undefined}
               className={`nav-item ${page === n.id ? "active" : ""}`}
               onClick={() => setPage(n.id)}
             >
@@ -242,19 +251,19 @@ export default function App() {
           </div>
         </header>
         <div className="content">
-          <div className="page-heading">
+          <div className={`page-heading ${page === "overview" ? "overview-heading" : ""}`}>
             <div>
               <div className="eyebrow">МОНИТОРИНГ ИНЖЕНЕРНЫХ КОЛЛЕКТОРОВ</div>
               <h1>
                 {page === "overview"
                   ? dashboard?.mode === "real"
                     ? "Мониторинг коллекторов"
-                    : "Всё под контролем"
+                    : "Аналитическая система"
                   : title}
               </h1>
               <p>
                 {page === "overview"
-                  ? "Выявляйте риски заранее. Планируйте обслуживание вовремя."
+                  ? "Следите за состоянием коллекторов в реальном времени, получайте предупреждения о рисках и планируйте обслуживание заранее."
                   : "История сигналов, прогнозы и действия в одном пространстве."}
               </p>
             </div>
@@ -305,7 +314,11 @@ export default function App() {
                     <span>Оперативная сводка</span>
                     <span>
                       Данные на {date(dashboard.as_of)}{" "}
-                      {new Date(dashboard.as_of).getFullYear()} · 00:00
+                      {new Date(dashboard.as_of).getFullYear()} ·{" "}
+                      {new Date(dashboard.as_of).toLocaleTimeString("ru-RU", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </span>
                   </div>
                   <div className="kpi-grid">
@@ -445,11 +458,11 @@ export default function App() {
                       </div>
                       <div className="chart-legend">
                         <span>
-                          <i style={{ background: "#39836a" }} />
+                          <i style={{ background: "#7d8465" }} />
                           Датчики
                         </span>
                         <span>
-                          <i style={{ background: "#94adbf" }} />
+                          <i style={{ background: "#c28477" }} />
                           Инфраструктура
                         </span>
                         {hasObservations ? (
@@ -485,12 +498,12 @@ export default function App() {
                             >
                               <stop
                                 offset="0%"
-                                stopColor="#7cae94"
+                                stopColor="#7d8465"
                                 stopOpacity={0.23}
                               />
                               <stop
                                 offset="100%"
-                                stopColor="#7cae94"
+                                stopColor="#7d8465"
                                 stopOpacity={0}
                               />
                             </linearGradient>
@@ -503,14 +516,14 @@ export default function App() {
                           <XAxis
                             dataKey="date"
                             tickFormatter={date}
-                            tick={{ fontSize: 10, fill: "#8a9690" }}
+                            tick={{ fontSize: 12, fill: "#3b3f2f" }}
                             axisLine={false}
                             tickLine={false}
                             minTickGap={40}
                           />
                           <YAxis
                             allowDecimals={false}
-                            tick={{ fontSize: 10, fill: "#8a9690" }}
+                            tick={{ fontSize: 12, fill: "#3b3f2f" }}
                             axisLine={false}
                             tickLine={false}
                           />
@@ -519,24 +532,28 @@ export default function App() {
                             contentStyle={{
                               borderRadius: 10,
                               border: "1px solid #e5eae6",
-                              fontSize: 12,
+                              fontSize: 14,
                             }}
                           />
                           <Area
-                            isAnimationActive={false}
+                            isAnimationActive={!reducedMotion}
+                            animationDuration={650}
+                            animationEasing="ease-in-out"
                             type="monotone"
                             dataKey="sensor"
                             name="Датчики"
-                            stroke="#39836a"
+                            stroke="#7d8465"
                             strokeWidth={2}
                             fill="url(#greenArea)"
                           />
                           <Area
-                            isAnimationActive={false}
+                            isAnimationActive={!reducedMotion}
+                            animationDuration={650}
+                            animationEasing="ease-in-out"
                             type="monotone"
                             dataKey="infrastructure"
                             name="Инфраструктура"
-                            stroke="#94adbf"
+                            stroke="#c28477"
                             strokeWidth={2}
                             fill="transparent"
                           />

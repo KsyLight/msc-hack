@@ -28,7 +28,18 @@ export default function PredictionTable({
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.id} onClick={() => onSelect(r)}>
+            <tr
+              key={r.id}
+              tabIndex={0}
+              aria-label={`${r.object_name}, ${labels[r.direction]}, ${riskLabels[r.risk]}`}
+              onClick={() => onSelect(r)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  onSelect(r);
+                }
+              }}
+            >
               <td>
                 <button
                   className="object-link"
