@@ -1,0 +1,30 @@
+# Local Python environment and generated files
+.venv/
+__pycache__/
+*.py[cod]
+*.parquet
+*.cbm
+
+# Source datasets and notebooks with embedded outputs
+/ext-journal-*/
+/журнал_событий_пример.csv
+/справочник_каналов_датчиков.csv
+/справочник_объектов_диспетчер.csv
+/справочник_состояний.csv
+/data_EDA_2026.ipynb
+/LCT2026_final_EDA.ipynb
+
+# Keep only the selected model bundle and its small feature/dependency specs
+/data_handoff/*
+!/data_handoff/fire_ml/
+/data_handoff/fire_ml/*
+!/data_handoff/fire_ml/feature_list.json
+!/data_handoff/fire_ml/requirements_fire_model.txt
+!/data_handoff/fire_ml/models/
+/data_handoff/fire_ml/models/*
+!/data_handoff/fire_ml/models/candidate_history_compact_20260929/
+/data_handoff/fire_ml/models/candidate_history_compact_20260929/*
+!/data_handoff/fire_ml/models/candidate_history_compact_20260929/smoke_catboost_20260929T163234Z.cbm
+!/data_handoff/fire_ml/models/candidate_history_compact_20260929/smoke_catboost_20260929T163234Z.json
+!/data_handoff/fire_ml/models/candidate_history_compact_20260929/HANDOFF.md
+!/data_handoff/fire_ml/models/candidate_history_compact_20260929/MODEL_GUIDE_RU.md

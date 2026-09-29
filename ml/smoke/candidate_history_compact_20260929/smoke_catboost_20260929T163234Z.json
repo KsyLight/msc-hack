@@ -1,0 +1,44 @@
+{
+  "model_version": "smoke_catboost_20260929T163234Z",
+  "target": "smoke_signal_24_48h",
+  "features": [
+    "smoke_messages_1d",
+    "smoke_messages_7d",
+    "smoke_messages_30d",
+    "events_7d",
+    "channel_history_count",
+    "channel_history_rate"
+  ],
+  "categorical_features": [],
+  "channel_history": true,
+  "feature_subset": [
+    "smoke_messages_1d",
+    "smoke_messages_7d",
+    "smoke_messages_30d",
+    "events_7d"
+  ],
+  "params": {
+    "loss_function": "Logloss",
+    "eval_metric": "PRAUC",
+    "iterations": 343,
+    "depth": 7,
+    "learning_rate": 0.04,
+    "l2_leaf_reg": 8.0,
+    "random_seed": 42,
+    "thread_count": 1,
+    "allow_writing_files": false,
+    "verbose": 100
+  },
+  "training_files": [
+    "train.parquet",
+    "validation.parquet"
+  ],
+  "training_start": "2022-01-01",
+  "training_end": "2025-12-31",
+  "negative_sampling_rate": 1.0,
+  "positive_weight": 1.0,
+  "threshold": 0.034009546,
+  "rows_sampled": 10561145,
+  "positives_sampled": 33596,
+  "test_read": false
+}

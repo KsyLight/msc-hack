@@ -16,8 +16,20 @@ HANDOFF_FEATURES = SENSOR_FEATURES + [
     "event_ratio_7d_30d", "active_days_7d", "night_events_7d", "text_n_7d",
 ]
 INFRASTRUCTURE_PATTERN = r"состояние насоса|состояние вентилятора"
+SMOKE_PATTERN = r"дым"
 TARGETS = {"sensor": "target_fault_24_48h", "infrastructure": "target_fault_24_48h"}
-LABELS = {"sensor": "Отказ датчика", "infrastructure": "Состояние инфраструктуры"}
+# Optional third direction; loaded only when runtime/models/smoke.joblib exists.
+OPTIONAL_TARGETS = {"smoke": "smoke_signal_24_48h"}
+LABELS = {
+    "sensor": "Отказ датчика",
+    "infrastructure": "Состояние инфраструктуры",
+    "smoke": "Сигнал дыма",
+}
+HORIZONS = {
+    "target_fault_24_48h": {"min_hours": 24, "max_hours": 48},
+    "target_monthly": {"min_hours": 24, "max_hours": 744},
+    "smoke_signal_24_48h": {"min_hours": 24, "max_hours": 48},
+}
 
 
 def validate_features(features: list[str]):

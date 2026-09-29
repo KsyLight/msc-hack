@@ -2,12 +2,12 @@
 
 Локальный сервис для раннего предупреждения о новых сообщениях «Неисправен» в инженерных коллекторах. Проект состоит из FastAPI backend, React/TypeScript frontend, моделей scikit-learn, SQLite-журнала и Docker-конфигурации.
 
-Сервис работает по двум направлениям:
+Сервис работает по направлениям:
 
-- `sensor` — датчики;
-- `infrastructure` — состояние насосов и вентиляторов.
+- `sensor` / `infrastructure` — общая месячная LightGBM-модель (окно `[t+24ч, t+31д)`), фильтр по типу оборудования;
+- `smoke` — опциональная CatBoost-модель сигнала дыма (окно `[t+24ч, t+48ч)`), подключается при наличии `runtime/real/models/smoke.joblib`.
 
-Целевой горизонт обеих моделей: новое сообщение «Неисправен» через 24–48 часов. Балл модели не подтверждает физическую поломку или износ. Ограничения и происхождение данных описаны в [docs/DATA_AND_MODELS.md](docs/DATA_AND_MODELS.md).
+Балл модели не подтверждает физическую поломку, износ или пожар. Подробности: [docs/DATA_AND_MODELS.md](docs/DATA_AND_MODELS.md), [docs/MONTHLY_INTEGRATION.md](docs/MONTHLY_INTEGRATION.md).
 
 ## Структура проекта
 
@@ -36,20 +36,18 @@ runtime/real/
   scoring.parquet
   observations.parquet       # нужен для истории наблюдений; может отсутствовать
   models/
-    sensor.joblib
-    sensor.json
-    infrastructure.joblib
-    infrastructure.json
+    sensor.joblib / sensor.json
+    infrastructure.joblib / infrastructure.json
+    smoke.joblib / smoke.json / smoke_catboost_*.cbm   # опционально
 ```
 
-Модели для прогнозирования находятся здесь:
-
-| Направление | Рабочая модель | Метаданные |
+| Направление | Рабочая модель | Цель / горизонт |
 |---|---|---|
-| Датчики | `runtime/real/models/sensor.joblib` | `runtime/real/models/sensor.json` |
-| Насосы и вентиляторы | `runtime/real/models/infrastructure.joblib` | `runtime/real/models/infrastructure.json` |
+| Датчики | `runtime/real/models/sensor.joblib` | `target_monthly`, 24–744 ч |
+| Насосы и вентиляторы | `runtime/real/models/infrastructure.joblib` | `target_monthly`, 24–744 ч |
+| Сигнал дыма | `runtime/real/models/smoke.joblib` | `smoke_signal_24_48h`, 24–48 ч |
 
-Файл `.joblib` содержит словарь `{"model": ..., "metadata": ...}`. Backend загружает обе модели при старте. Если реальных артефактов нет, режим `real` завершается ошибкой и не подменяется demo-данными.
+Файл `.joblib` содержит словарь `{"model": ..., "metadata": ...}`. Backend загружает `sensor` и `infrastructure` при старте; `smoke` — если артефакт есть. Для переупаковки CatBoost: `python -m scripts.export_smoke`. Если реальных артефактов нет, режим `real` завершается ошибкой и не подменяется demo-данными. Не запускайте `scripts.train` для установки месячного комплекта — он вернёт суточный baseline.
 
 ### 2. Запуск через Docker
 

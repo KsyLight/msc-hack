@@ -1,0 +1,49 @@
+{
+  "api_passed": true,
+  "rows": 6145,
+  "eligible": 6012,
+  "window_hours": [
+    24,
+    744
+  ],
+  "directions": [
+    "sensor",
+    "infrastructure"
+  ],
+  "test_metrics": {
+    "sensor": {
+      "rows": 744904,
+      "positives": 18684,
+      "prevalence": 0.025082426728813376,
+      "average_precision": 0.22297548340885615,
+      "roc_auc": 0.8598981157102449,
+      "precision": 0.4081065431383903,
+      "recall": 0.1886105758938129,
+      "f1": 0.25798894542259965,
+      "alerts": 8635,
+      "tp": 3524,
+      "fp": 5111,
+      "fn": 15160,
+      "tn": 721109,
+      "threshold": 0.4318047559853715,
+      "pr_auc": 0.22297548340885615
+    },
+    "infrastructure": {
+      "rows": 50983,
+      "positives": 32108,
+      "prevalence": 0.6297785536355256,
+      "average_precision": 0.8489748339352923,
+      "roc_auc": 0.8046323566902103,
+      "precision": 0.7749118992277124,
+      "recall": 0.9656471907312819,
+      "f1": 0.8598288939114519,
+      "alerts": 40011,
+      "tp": 31005,
+      "fp": 9006,
+      "fn": 1103,
+      "tn": 9869,
+      "threshold": 0.4318047559853715,
+      "pr_auc": 0.8489748339352923
+    }
+  }
+}

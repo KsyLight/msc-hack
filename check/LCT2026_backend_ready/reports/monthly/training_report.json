@@ -1,0 +1,54 @@
+{
+  "target": "target_monthly",
+  "window_hours": [
+    24,
+    744
+  ],
+  "model": "recent_monthly_2024_15_0",
+  "threshold": 0.4318047559853715,
+  "validation_metrics": {
+    "rows": 486154,
+    "positives": 24277,
+    "prevalence": 0.049936851285806556,
+    "average_precision": 0.5866146441867734,
+    "roc_auc": 0.9333306358453675,
+    "precision": 0.625627837826978,
+    "recall": 0.6413477777320097,
+    "f1": 0.6333902855748108,
+    "alerts": 24887,
+    "tp": 15570,
+    "fp": 9317,
+    "fn": 8707,
+    "tn": 452560,
+    "threshold": 0.4318047559853715
+  },
+  "test_metrics": {
+    "rows": 1052914,
+    "positives": 64824,
+    "prevalence": 0.06156628176660202,
+    "average_precision": 0.6585491142011995,
+    "roc_auc": 0.9474664650298895,
+    "precision": 0.6567023382407522,
+    "recall": 0.655081451314328,
+    "f1": 0.6558908933646361,
+    "alerts": 64664,
+    "tp": 42465,
+    "fp": 22199,
+    "fn": 22359,
+    "tn": 965891,
+    "threshold": 0.4318047559853715
+  },
+  "quality_pass": false,
+  "batch_seconds": 1.5493026999756694,
+  "batch_rows": 8238,
+  "early_event_share_among_true_alerts": 0.08107853526433534,
+  "evaluation_status": "retrospective re-evaluation; 2026 was already examined",
+  "source_fingerprint": "704a5aae6dc33b6e299dd5ff20d9961f32655afe5f338336bfe9bee30ed13673",
+  "test_scope": {
+    "source_rows": 1413660,
+    "retained_rows": 1052914,
+    "excluded_incomplete_future": 360746,
+    "first_prediction": "2026-01-01 00:00:00",
+    "last_prediction": "2026-05-01 00:00:00"
+  }
+}

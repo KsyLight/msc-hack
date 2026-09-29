@@ -1,4 +1,4 @@
-__pycache__/
+﻿__pycache__/
 .pytest_cache/
 .ipynb_checkpoints/
 *.log
@@ -11,3 +11,9 @@ frontend/node_modules/
 runtime/**/operations.sqlite3
 runtime/local-check/
 runtime/start-script-check/
+*.joblib
+!runtime/real/models/sensor.joblib
+!runtime/real/models/infrastructure.joblib
+!runtime/real/models/smoke.joblib
+!runtime/real/models/smoke_catboost_*.cbm
+.venv/

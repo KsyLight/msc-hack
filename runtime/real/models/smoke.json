@@ -1,0 +1,55 @@
+{
+  "direction": "smoke",
+  "algorithm": "CatBoostClassifier",
+  "version": "smoke_catboost_20260929T163234Z",
+  "provenance": "notebook_handoff",
+  "features": [
+    "smoke_messages_1d",
+    "smoke_messages_7d",
+    "smoke_messages_30d",
+    "events_7d",
+    "channel_history_count",
+    "channel_history_rate"
+  ],
+  "categorical_features": [],
+  "target": "smoke_signal_24_48h",
+  "threshold": 0.034009546,
+  "horizon": {
+    "min_hours": 24,
+    "max_hours": 48
+  },
+  "trained_at": "2026-09-29T20:41:55.730311+00:00",
+  "training_start": "2022-01-01",
+  "training_end": "2025-12-31",
+  "params": {
+    "loss_function": "Logloss",
+    "eval_metric": "PRAUC",
+    "iterations": 343,
+    "depth": 7,
+    "learning_rate": 0.04,
+    "l2_leaf_reg": 8.0,
+    "random_seed": 42,
+    "thread_count": 1,
+    "allow_writing_files": false,
+    "verbose": 100
+  },
+  "channel_history": true,
+  "test": {
+    "average_precision": 0.01624,
+    "precision": 0.0171,
+    "recall": 0.1436,
+    "f2": 0.05782,
+    "threshold": 0.034009546,
+    "rows": 1415514,
+    "positives": 6290,
+    "source": "HANDOFF.md one-shot final test"
+  },
+  "meets_case_metrics": false,
+  "model_file": "smoke_catboost_20260929T163234Z.cbm",
+  "limitations": [
+    "Прогноз зарегистрированного сигнала дыма, не подтверждённый пожар.",
+    "Без размеченной channel-history в scoring используются cold-start нули.",
+    "Низкий precision на финальном тесте; нагрузка алертов — продуктовое решение.",
+    "Обучение на полном потоке до 2026-01-01; test читался один раз."
+  ]
+}

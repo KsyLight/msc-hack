@@ -13,7 +13,7 @@ from backend.config import Settings
 from backend.schemas import (Direction, TicketCreate, TicketUpdate, PredictBatch, PredictionPage,
                              BatchResult, TicketRecord, TicketDetail, Collector)
 from backend.service import RiskService
-from backend.ml.contracts import SENSOR_PATTERN, INFRASTRUCTURE_PATTERN
+from backend.ml.contracts import SENSOR_PATTERN, INFRASTRUCTURE_PATTERN, SMOKE_PATTERN
 
 
 def create_app(settings=None):
@@ -25,7 +25,7 @@ def create_app(settings=None):
         yield
 
     app = FastAPI(title="Контур · Предиктивный мониторинг", version="0.1.0", lifespan=lifespan,
-                  description="Два направления, горизонт [24, 48) часов. Балл модели относится к сигналу «Неисправен», не к подтверждённому физическому отказу.")
+                  description="Два направления. Горизонт берётся из метаданных модели в /api/models. Балл модели относится к сигналу «Неисправен», не к подтверждённому физическому отказу.")
     app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"], allow_methods=["GET", "POST", "PATCH"], allow_headers=["Content-Type"])
 
     def service():
@@ -88,16 +88,20 @@ def create_app(settings=None):
 
     @app.post("/api/predict/{direction}", tags=["Models"], response_model=BatchResult)
     def predict(direction: Direction, payload: PredictBatch):
+        if direction not in service().models:
+            raise HTTPException(404, f"Модель направления {direction} не подключена")
         expected = set(service().models[direction]["metadata"]["features"])
         rows = []
+        patterns = {"sensor": SENSOR_PATTERN, "infrastructure": INFRASTRUCTURE_PATTERN, "smoke": SMOKE_PATTERN}
         for row in payload.rows:
-            pattern = SENSOR_PATTERN if direction == "sensor" else INFRASTRUCTURE_PATTERN
-            if not re.search(pattern, row.sensor_type.casefold()):
+            if not re.search(patterns[direction], row.sensor_type.casefold()):
                 raise HTTPException(422, "Тип канала не соответствует направлению модели")
             if set(row.features) != expected:
                 raise HTTPException(422, {"message": "Feature contract mismatch", "required": sorted(expected)})
             if row.prediction_time.tzinfo is not None:
                 raise HTTPException(422, "Notebook timestamps use source-local time without timezone; send the same convention")
+            if service().models[direction]["metadata"]["target"] == "target_monthly" and row.prediction_time != row.prediction_time.replace(hour=0, minute=0, second=0, microsecond=0):
+                raise HTTPException(422, "Месячная модель принимает срез на полночь времени источника")
             if row.eligible and row.last_explicit_state.casefold() != "норма":
                 raise HTTPException(422, "Eligible forecasts require last_explicit_state=норма")
             rows.append({**row.model_dump(exclude={"features"}), **row.features})

@@ -1,0 +1,16 @@
+polars==1.44.2
+numpy==2.5.3
+pandas==3.0.6
+pyarrow==25.0.1
+duckdb==1.5.6
+matplotlib==3.11.2
+catboost==1.2.10
+lightgbm==4.7.0
+xgboost==3.4.1
+optuna==5.0.0
+scikit-learn==1.9.1
+scipy==1.18.1
+openpyxl==3.1.5
+ipykernel==7.3.0
+nbformat==5.11.1
+nbclient==0.11.0

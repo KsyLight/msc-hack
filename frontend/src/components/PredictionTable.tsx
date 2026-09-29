@@ -1,4 +1,4 @@
-import { ChevronRight, Radio, Wrench } from "lucide-react";
+import { Bell, ChevronRight, Radio, Wrench } from "lucide-react";
 import { Prediction, date, labels, riskLabels, score } from "../api";
 
 export default function PredictionTable({
@@ -59,6 +59,8 @@ export default function PredictionTable({
                 <span className="direction-cell">
                   {r.direction === "sensor" ? (
                     <Radio size={14} />
+                  ) : r.direction === "smoke" ? (
+                    <Bell size={14} />
                   ) : (
                     <Wrench size={14} />
                   )}{" "}

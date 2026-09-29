@@ -3,14 +3,14 @@ import hashlib
 import json
 import threading
 import time
+from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
-from backend.ml.contracts import TARGETS, validate_features
+from backend.ml.contracts import HORIZONS, OPTIONAL_TARGETS, SMOKE_PATTERN, TARGETS, validate_features
 from backend.ml.demo import bootstrap_demo
 from backend.ml.training import matrix
 from backend.store import Store
-
 
 class RiskService:
     def __init__(self, settings):
@@ -23,12 +23,25 @@ class RiskService:
                 raise RuntimeError("Real artifacts missing. Run python -m scripts.train --handoff PATH first; demo is never substituted.")
             bootstrap_demo(root)
         self.models = {d: joblib.load(root / "models" / f"{d}.joblib") for d in TARGETS}
+        for direction in OPTIONAL_TARGETS:
+            path = root / "models" / f"{direction}.joblib"
+            if path.exists():
+                bundle = joblib.load(path)
+                model = bundle["model"]
+                model_file = getattr(model, "model_path", None)
+                if model_file and not Path(model_file).is_absolute():
+                    model.model_path = str(path.parent / Path(model_file).name)
+                self.models[direction] = bundle
         for bundle in self.models.values():
             validate_features(bundle["metadata"]["features"])
+            meta = bundle["metadata"]
+            if meta.get("target") not in HORIZONS or meta.get("horizon") != HORIZONS[meta["target"]]:
+                raise ValueError("Несовместимые таргет и горизонт модели")
             if settings.mode == "real" and bundle["metadata"]["provenance"] == "synthetic_demo":
                 raise RuntimeError("Synthetic model cannot be served in real mode")
         self.data = pd.read_parquet(root / "scoring.parquet")
         self.data.prediction_time = pd.to_datetime(self.data.prediction_time)
+        self.data = self._append_smoke_rows(self.data)
         self.objects = json.loads((root / "objects.json").read_text(encoding="utf-8"))
         self.dataset = json.loads((root / "dataset.json").read_text(encoding="utf-8"))
         observations_file = root / "observations.parquet"
@@ -36,12 +49,32 @@ class RiskService:
         self.store = Store(settings.database)
         self.run()
 
+    def _append_smoke_rows(self, frame: pd.DataFrame) -> pd.DataFrame:
+        if "smoke" not in self.models:
+            return frame
+        if frame.direction.eq("smoke").any():
+            return frame
+        meta = self.models["smoke"]["metadata"]
+        source = frame.loc[frame.direction.eq("sensor") & frame.sensor_type.astype(str).str.contains(SMOKE_PATTERN, case=False, regex=True)].copy()
+        if source.empty:
+            return frame
+        source["direction"] = "smoke"
+        for feature in meta["features"]:
+            if feature not in source.columns:
+                # Cold-start without labeled channel history; batch API can still supply real values.
+                source[feature] = 0.0
+        return pd.concat([frame, source], ignore_index=True)
+
     def factors(self, row):
         # Observed context, deliberately not called SHAP or causal explanation.
         labels = [("fault_messages_30d", "Сообщений «Неисправен» за 30 дней"),
                   ("undefined_messages_7d", "Неопределённых состояний за 7 дней"),
                   ("alarms_7d", "Тревожных сообщений за 7 дней"),
-                  ("event_ratio_1d_7d", "Активность относительно средней за неделю")]
+                  ("event_ratio_1d_7d", "Активность относительно средней за неделю"),
+                  ("smoke_messages_7d", "Сообщений о дыме за 7 дней"),
+                  ("smoke_messages_30d", "Сообщений о дыме за 30 дней"),
+                  ("channel_history_count", "История smoke-сигналов канала"),
+                  ("channel_history_rate", "Доля smoke-сигналов канала")]
         return [{"feature": key, "label": label, "value": round(float(row[key]), 2)} for key, label in labels if key in row and pd.notna(row[key])]
 
     def score(self, direction, frame):
@@ -62,20 +95,24 @@ class RiskService:
                             "object_name": names.get(str(row.object_id), str(row.object_id)), "sensor_type": str(row.sensor_type),
                             "system_type": str(row.get("system_type", "")), "sensor_name": str(row.get("sensor_name", "")),
                             "system_tag": str(row.get("system_tag", "")),
-                            "prediction_time": t.isoformat(), "target_start": (t + pd.Timedelta(hours=24)).isoformat(),
-                            "target_end": (t + pd.Timedelta(hours=48)).isoformat(),
+                            "prediction_time": t.isoformat(), "target_start": (t + pd.Timedelta(hours=meta["horizon"]["min_hours"])).isoformat(),
+                            "target_end": (t + pd.Timedelta(hours=meta["horizon"]["max_hours"])).isoformat(),
                             "score": None if np.isnan(score) else round(float(score), 6), "risk": risk,
                             "threshold": meta["threshold"], "model_version": meta["version"],
                             "state": str(row.get("last_explicit_state", "unknown")), "factors": self.factors(row),
                             "recommendation": "Проверить журнал и запланировать диагностику" if risk == "high" else "Продолжить наблюдение" if risk != "unavailable" else "Проверить состояние и полноту данных",
                             "mode": self.settings.mode})
+            if meta.get("target") == "target_monthly":
+                results[-1]["recommendation"] += "; экспериментальный месячный прогноз, низкий балл не подтверждает исправность"
+            if meta.get("target") == "smoke_signal_24_48h":
+                results[-1]["recommendation"] += "; прогноз зарегистрированного сигнала дыма, не подтверждённый пожар"
         return results
 
     def run(self):
         with self.lock:
             started = time.perf_counter()
             rows = []
-            for direction in TARGETS:
+            for direction in self.models:
                 rows.extend(self.score(direction, self.data.loc[self.data.direction.eq(direction)]))
             with self.store.connect() as conn:
                 conn.executemany("INSERT OR IGNORE INTO predictions VALUES (?,?,?,?,?,?,?)", [
@@ -119,7 +156,8 @@ class RiskService:
         with self.store.connect() as conn:
             rows = conn.execute(f"""SELECT substr(prediction_time,1,10) AS date,count(*) AS total,
                 sum(direction='sensor' AND json_extract(payload,'$.risk')='high') AS sensor,
-                sum(direction='infrastructure' AND json_extract(payload,'$.risk')='high') AS infrastructure
+                sum(direction='infrastructure' AND json_extract(payload,'$.risk')='high') AS infrastructure,
+                sum(direction='smoke' AND json_extract(payload,'$.risk')='high') AS smoke
                 FROM predictions WHERE {where} GROUP BY date ORDER BY date""", params).fetchall()
         return [dict(row) for row in rows]
 

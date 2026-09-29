@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, FiniteFloat
 
-Direction = Literal["sensor", "infrastructure"]
+Direction = Literal["sensor", "infrastructure", "smoke"]
 
 
 class TicketCreate(BaseModel):

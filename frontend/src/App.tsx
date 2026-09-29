@@ -217,7 +217,7 @@ export default function App() {
           <div className="system-status">
             <span className="status-dot" />
             <div>
-              Мониторинг коллекторов<small>Прогноз на 24–48 часов</small>
+              Мониторинг коллекторов<small>Окно прогноза указано в карточке</small>
             </div>
           </div>
           <div className="user">
@@ -254,7 +254,13 @@ export default function App() {
           <div className={`page-heading ${page === "overview" ? "overview-heading" : ""}`}>
             <div>
               <div className="eyebrow">МОНИТОРИНГ ИНЖЕНЕРНЫХ КОЛЛЕКТОРОВ</div>
-              <h1>Аналитическая система</h1>
+              <h1>
+                {page === "overview"
+                  ? dashboard?.mode === "real"
+                    ? "Мониторинг коллекторов"
+                    : "Аналитическая система"
+                  : title}
+              </h1>
               <p>
                 {page === "overview"
                   ? "Следите за состоянием коллекторов в реальном времени, получайте предупреждения о рисках и планируйте обслуживание заранее."
@@ -327,7 +333,7 @@ export default function App() {
                       {
                         label: "Контролируемые каналы",
                         value: dashboard.channels,
-                        sub: `${dashboard.directions.sensor.total} датчиков · ${dashboard.directions.infrastructure.total} оборудования`,
+                        sub: `${dashboard.directions.sensor?.total ?? 0} датчиков · ${dashboard.directions.infrastructure?.total ?? 0} оборудования${dashboard.directions.smoke ? ` · ${dashboard.directions.smoke.total} дым` : ""}`,
                         icon: Radio,
                         color: "blue",
                       },
@@ -393,12 +399,13 @@ export default function App() {
                       <div className="card-heading">
                         <div>
                           <h3>Направления прогноза</h3>
-                          <p>Раннее предупреждение · +24–48 ч</p>
+                          <p>Прогноз зарегистрированной неисправности</p>
                         </div>
                         <Sparkles size={18} />
                       </div>
-                      {(["sensor", "infrastructure"] as Direction[]).map(
-                        (d) => (
+                      {(
+                        Object.keys(dashboard.directions) as Direction[]
+                      ).map((d) => (
                           <button
                             className={`direction-card ${d}`}
                             key={d}
@@ -408,6 +415,8 @@ export default function App() {
                               <span className="direction-icon">
                                 {d === "sensor" ? (
                                   <Radio size={20} />
+                                ) : d === "smoke" ? (
+                                  <Bell size={20} />
                                 ) : (
                                   <Wrench size={20} />
                                 )}
@@ -417,7 +426,9 @@ export default function App() {
                                 <small>
                                   {d === "sensor"
                                     ? "Контактные, объёмные, газовые и другие"
-                                    : "Насосы и вентиляционное оборудование"}
+                                    : d === "smoke"
+                                      ? "Зарегистрированный сигнал дыма, не пожар"
+                                      : "Насосы и вентиляционное оборудование"}
                                 </small>
                               </span>
                               <ArrowUpRight size={17} />
@@ -432,8 +443,7 @@ export default function App() {
                               </span>
                             </div>
                           </button>
-                        ),
-                      )}
+                        ))}
                     </section>
                   </div>
                   <section className="card trend-card">
@@ -623,6 +633,7 @@ export default function App() {
                       <option value="">Все направления</option>
                       <option value="sensor">Отказ датчика</option>
                       <option value="infrastructure">Инфраструктура</option>
+                      <option value="smoke">Сигнал дыма</option>
                     </select>
                     <select
                       aria-label="Риск"

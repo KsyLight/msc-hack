@@ -1,0 +1,12 @@
+__pycache__/
+.pytest_cache/
+.ipynb_checkpoints/
+.env
+ext-journal-*.csv
+*.joblib
+*.tsbuildinfo
+docker/wheels/*.whl
+reports/*.ipynb
+*.log
+!runtime/real/models/sensor.joblib
+!runtime/real/models/infrastructure.joblib

@@ -1,4 +1,4 @@
-export type Direction = "sensor" | "infrastructure";
+export type Direction = "sensor" | "infrastructure" | "smoke";
 export type Risk = "high" | "medium" | "low" | "unavailable";
 export interface Prediction {
   id: string;
@@ -35,6 +35,7 @@ export interface Dashboard {
     date: string;
     sensor: number;
     infrastructure: number;
+    smoke?: number;
     total: number;
   }[];
   top_predictions: Prediction[];
@@ -137,6 +138,7 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
 export const labels: Record<Direction, string> = {
   sensor: "Отказ датчика",
   infrastructure: "Инфраструктура",
+  smoke: "Сигнал дыма",
 };
 export const riskLabels: Record<Risk, string> = {
   high: "Высокий",
