@@ -14,7 +14,10 @@ test("dashboard, filters, ticket lifecycle and responsive layout", async ({
       name: real ? "Мониторинг коллекторов" : "Всё под контролем",
     }),
   ).toBeVisible();
-  if (!real) await expect(page.getByText("Демонстрационный режим", { exact: true })).toBeVisible();
+  if (!real)
+    await expect(
+      page.getByText("Демонстрационный режим", { exact: true }),
+    ).toBeVisible();
   await expect(page.locator("tbody tr")).toHaveCount(6);
   await expect(page.locator(".recharts-area-curve")).toHaveCount(2);
   if (real) {
@@ -24,7 +27,9 @@ test("dashboard, filters, ticket lifecycle and responsive layout", async ({
     await page
       .getByRole("combobox", { name: "Период истории" })
       .selectOption("366");
-    await expect(page.getByRole("combobox", { name: "Период истории" })).toHaveValue("366");
+    await expect(
+      page.getByRole("combobox", { name: "Период истории" }),
+    ).toHaveValue("366");
     await expect(page.locator(".object-ranking button")).toHaveCount(5);
   }
   await page.screenshot({

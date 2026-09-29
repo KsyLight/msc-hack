@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm 
 COPY requirements.txt ./
 RUN --mount=type=cache,target=/root/.cache/pip --mount=type=bind,source=docker/wheels,target=/wheels \
     if ls /wheels/*.whl >/dev/null 2>&1; then \
-      pip install --no-index --find-links=/wheels -r requirements.txt; \
+      pip install --find-links=/wheels --timeout 120 --retries 5 -r requirements.txt; \
     else \
       pip install --timeout 120 --retries 5 -r requirements.txt; \
     fi

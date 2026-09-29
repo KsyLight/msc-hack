@@ -2184,7 +2184,9 @@ textarea:focus {
 }
 tbody tr,
 tbody td {
-  transition: background-color 180ms ease, box-shadow 180ms ease;
+  transition:
+    background-color 180ms ease,
+    box-shadow 180ms ease;
 }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   tbody tr:hover {

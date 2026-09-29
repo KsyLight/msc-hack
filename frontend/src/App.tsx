@@ -217,7 +217,8 @@ export default function App() {
           <div className="system-status">
             <span className="status-dot" />
             <div>
-              Мониторинг коллекторов<small>Окно прогноза указано в карточке</small>
+              Мониторинг коллекторов
+              <small>Окно прогноза указано в карточке</small>
             </div>
           </div>
           <div className="user">
@@ -237,7 +238,12 @@ export default function App() {
           </div>
           <div className="topbar-right">
             <span className="local-label">
-              {dashboard && <>Данные на {new Date(dashboard.as_of).toLocaleDateString("ru-RU")}</>}
+              {dashboard && (
+                <>
+                  Данные на{" "}
+                  {new Date(dashboard.as_of).toLocaleDateString("ru-RU")}
+                </>
+              )}
             </span>
             <button
               className="icon-button"
@@ -251,7 +257,9 @@ export default function App() {
           </div>
         </header>
         <div className="content">
-          <div className={`page-heading ${page === "overview" ? "overview-heading" : ""}`}>
+          <div
+            className={`page-heading ${page === "overview" ? "overview-heading" : ""}`}
+          >
             <div>
               <div className="eyebrow">МОНИТОРИНГ ИНЖЕНЕРНЫХ КОЛЛЕКТОРОВ</div>
               <h1>
@@ -302,12 +310,14 @@ export default function App() {
             </div>
           ) : (
             <>
-              {dashboard.mode === "demo" && <div className="data-banner">
-                <div>
-                  <Database size={15} />
-                  <strong>Демонстрационный режим</strong>
+              {dashboard.mode === "demo" && (
+                <div className="data-banner">
+                  <div>
+                    <Database size={15} />
+                    <strong>Демонстрационный режим</strong>
+                  </div>
                 </div>
-              </div>}
+              )}
               {page === "overview" && (
                 <>
                   <div className="section-caption">
@@ -403,9 +413,8 @@ export default function App() {
                         </div>
                         <Sparkles size={18} />
                       </div>
-                      {(
-                        Object.keys(dashboard.directions) as Direction[]
-                      ).map((d) => (
+                      {(Object.keys(dashboard.directions) as Direction[]).map(
+                        (d) => (
                           <button
                             className={`direction-card ${d}`}
                             key={d}
@@ -443,7 +452,8 @@ export default function App() {
                               </span>
                             </div>
                           </button>
-                        ))}
+                        ),
+                      )}
                     </section>
                   </div>
                   <section className="card trend-card">
@@ -566,7 +576,17 @@ export default function App() {
                     </div>
                     {hasObservations && (
                       <p className="muted tiny chart-note">
-                        {chartData.length > 0 && <>{new Date(chartData[0].date).toLocaleDateString("ru-RU")} — {new Date(chartData[chartData.length - 1].date).toLocaleDateString("ru-RU")}</>}
+                        {chartData.length > 0 && (
+                          <>
+                            {new Date(chartData[0].date).toLocaleDateString(
+                              "ru-RU",
+                            )}{" "}
+                            —{" "}
+                            {new Date(
+                              chartData[chartData.length - 1].date,
+                            ).toLocaleDateString("ru-RU")}
+                          </>
+                        )}
                       </p>
                     )}
                   </section>
