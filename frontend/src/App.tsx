@@ -256,10 +256,8 @@ export default function App() {
               <div className="eyebrow">МОНИТОРИНГ ИНЖЕНЕРНЫХ КОЛЛЕКТОРОВ</div>
               <h1>
                 {page === "overview"
-                  ? dashboard?.mode === "real"
                     ? "Аналитическая система"
-                    : "Аналитическая система"
-                  : title}
+                    : "Аналитическая система"}
               </h1>
               <p>
                 {page === "overview"
