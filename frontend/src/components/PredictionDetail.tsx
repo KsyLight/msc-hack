@@ -51,11 +51,25 @@ export default function PredictionDetail({
         </div>
         <ArrowUpRight size={44} />
       </div>
-      <p className="note">
-        Балл модели — оценка будущего сигнала «Неисправен». Это не вероятность
-        подтверждённой поломки.
-      </p>
       <dl>
+        {p.sensor_name && (
+          <div>
+            <dt>Название датчика</dt>
+            <dd>{p.sensor_name}</dd>
+          </div>
+        )}
+        {p.system_type && (
+          <div>
+            <dt>Инженерная система</dt>
+            <dd>{p.system_type}</dd>
+          </div>
+        )}
+        {p.system_tag && (
+          <div>
+            <dt>Тег системы</dt>
+            <dd>{p.system_tag}</dd>
+          </div>
+        )}
         <div>
           <dt>Направление</dt>
           <dd>{labels[p.direction]}</dd>
@@ -70,15 +84,8 @@ export default function PredictionDetail({
           <dt>Известное состояние</dt>
           <dd>{p.state}</dd>
         </div>
-        <div>
-          <dt>Порог предупреждения</dt>
-          <dd>{score(p.threshold)} / 100</dd>
-        </div>
       </dl>
       <h4>Наблюдения из истории</h4>
-      <p className="muted tiny">
-        Контекст для проверки диспетчером, не причинное объяснение модели.
-      </p>
       <div className="factor-list">
         {p.factors.map((f) => (
           <div key={f.feature}>
@@ -110,12 +117,6 @@ export default function PredictionDetail({
         <ClipboardPlus size={16} />
         {busy ? "Создаём…" : "Создать заявку на диагностику"}
       </button>
-      <div className="tiny muted model-version">
-        Модель {p.model_version} ·{" "}
-        {p.mode === "demo"
-          ? "Демонстрационный прогноз"
-          : "Исторический прогноз"}
-      </div>
     </dialog>
   );
 }

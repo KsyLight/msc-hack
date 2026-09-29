@@ -21,8 +21,8 @@ export default function PredictionTable({
             <th>Объект / канал</th>
             <th>Направление</th>
             <th>Уровень риска</th>
-            <th>Балл модели / 100</th>
-            <th>Целевой интервал</th>
+            <th>Оценка / 100</th>
+            <th>Период прогноза</th>
             <th />
           </tr>
         </thead>
@@ -42,6 +42,7 @@ export default function PredictionTable({
                 <small>
                   {r.entity_id} · {r.sensor_type}
                 </small>
+                {r.system_type && <small>{r.system_type}</small>}
               </td>
               <td>
                 <span className="direction-cell">

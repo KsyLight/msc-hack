@@ -211,6 +211,49 @@
         }
       }
     },
+    "/api/observations": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Observations",
+        "operationId": "observations_api_observations_get",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 3660,
+              "minimum": 1,
+              "default": 366,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/objects": {
       "get": {
         "tags": [
@@ -647,6 +690,21 @@
             "type": "string",
             "title": "Sensor Type"
           },
+          "system_type": {
+            "type": "string",
+            "title": "System Type",
+            "default": ""
+          },
+          "sensor_name": {
+            "type": "string",
+            "title": "Sensor Name",
+            "default": ""
+          },
+          "system_tag": {
+            "type": "string",
+            "title": "System Tag",
+            "default": ""
+          },
           "prediction_time": {
             "type": "string",
             "format": "date-time",
@@ -759,6 +817,24 @@
             "maxLength": 150,
             "minLength": 1,
             "title": "Sensor Type"
+          },
+          "system_type": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "System Type",
+            "default": ""
+          },
+          "sensor_name": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Sensor Name",
+            "default": ""
+          },
+          "system_tag": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "System Tag",
+            "default": ""
           },
           "prediction_time": {
             "type": "string",

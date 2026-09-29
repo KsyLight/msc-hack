@@ -6,7 +6,15 @@ SENSOR_FEATURES = [
     "hours_since_last_event", "alarm_rate_7d", "event_ratio_1d_7d",
     "active_days_30d", "history_complete_days",
 ]
-SENSOR_PATTERN = r"контакт|объ[её]мн|температур|дым|газ"
+SENSOR_PATTERN = r"контакт|объ[её]мн|температур|дым|газ|^кд(?:\s|$)|датчик движения|тепловой датчик"
+# Explicit, past-only feature whitelist for the prepared flat Parquet delivery.
+HANDOFF_FEATURES = SENSOR_FEATURES + [
+    "fault_messages_1d", "fault_messages_7d", "alarms_1d", "alarms_30d",
+    "power_messages_1d", "power_messages_7d", "power_messages_30d",
+    "undefined_messages_1d", "undefined_messages_30d",
+    "disabled_messages_1d", "disabled_messages_30d",
+    "event_ratio_7d_30d", "active_days_7d", "night_events_7d", "text_n_7d",
+]
 INFRASTRUCTURE_PATTERN = r"состояние насоса|состояние вентилятора"
 TARGETS = {"sensor": "target_fault_24_48h", "infrastructure": "target_fault_24_48h"}
 LABELS = {"sensor": "Отказ датчика", "infrastructure": "Состояние инфраструктуры"}

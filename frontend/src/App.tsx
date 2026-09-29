@@ -5,13 +5,10 @@ import {
   ArrowRight,
   ArrowUpRight,
   Bell,
-  Boxes,
   Check,
   ChevronRight,
-  CircleHelp,
   ClipboardList,
   Database,
-  Gauge,
   Layers3,
   LayoutDashboard,
   MapPin,
@@ -37,7 +34,6 @@ import {
   Collector,
   Dashboard,
   Direction,
-  Model,
   Prediction,
   Quality,
   Ticket,
@@ -47,23 +43,21 @@ import {
 import NetworkMap from "./components/NetworkMap";
 import PredictionTable from "./components/PredictionTable";
 import PredictionDetail from "./components/PredictionDetail";
+import DataStatus from "./components/DataStatus";
 
-type Page =
-  "overview" | "objects" | "predictions" | "tickets" | "models" | "quality";
+type Page = "overview" | "objects" | "predictions" | "tickets" | "quality";
 const nav = [
   { id: "overview", label: "Обзор системы", icon: LayoutDashboard },
   { id: "objects", label: "Объекты", icon: MapPin },
   { id: "predictions", label: "Журнал прогнозов", icon: Activity },
   { id: "tickets", label: "Заявки на ремонт", icon: ClipboardList },
-  { id: "models", label: "Модели", icon: Boxes },
-  { id: "quality", label: "Источники данных", icon: Database },
+  { id: "quality", label: "Состояние данных", icon: Database },
 ] as const;
 
 export default function App() {
   const [page, setPage] = useState<Page>("overview");
   const [dashboard, setDashboard] = useState<Dashboard>();
   const [objects, setObjects] = useState<Collector[]>([]);
-  const [models, setModels] = useState<Model[]>([]);
   const [quality, setQuality] = useState<Quality>();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [rows, setRows] = useState<Prediction[]>([]);
@@ -80,18 +74,22 @@ export default function App() {
   const [toast, setToast] = useState("");
   const [selected, setSelected] = useState<Prediction>();
   const [revision, setRevision] = useState(0);
+  const [historyDays, setHistoryDays] = useState(30);
+  const hasObservations = Boolean(dashboard?.observations?.length);
+  const chartData =
+    (hasObservations ? dashboard?.observations : dashboard?.trend)?.slice(
+      -historyDays,
+    ) ?? [];
 
   const reload = useCallback(async () => {
-    const [d, o, m, q, t] = await Promise.all([
+    const [d, o, q, t] = await Promise.all([
       api<Dashboard>("/dashboard"),
       api<Collector[]>("/objects"),
-      api<Model[]>("/models"),
       api<Quality>("/data-quality"),
       api<Ticket[]>("/tickets"),
     ]);
     setDashboard(d);
     setObjects(o);
-    setModels(m);
     setQuality(q);
     setTickets(t);
   }, []);
@@ -210,14 +208,9 @@ export default function App() {
           <div className="system-status">
             <span className="status-dot" />
             <div>
-              Локальный контур<small>Горизонт прогноза 24–48 ч</small>
+              Мониторинг коллекторов<small>Прогноз на 24–48 часов</small>
             </div>
           </div>
-          <a className="nav-item" href="/docs" target="_blank" rel="noreferrer">
-            <CircleHelp size={17} />
-            Документация API
-            <ArrowUpRight size={13} />
-          </a>
           <div className="user">
             <div className="avatar">ОД</div>
             <div>
@@ -235,7 +228,7 @@ export default function App() {
           </div>
           <div className="topbar-right">
             <span className="local-label">
-              <span className="status-dot" /> Локально
+              {dashboard && <>Данные на {new Date(dashboard.as_of).toLocaleDateString("ru-RU")}</>}
             </span>
             <button
               className="icon-button"
@@ -252,7 +245,13 @@ export default function App() {
           <div className="page-heading">
             <div>
               <div className="eyebrow">МОНИТОРИНГ ИНЖЕНЕРНЫХ КОЛЛЕКТОРОВ</div>
-              <h1>{page === "overview" ? "Всё под контролем" : title}</h1>
+              <h1>
+                {page === "overview"
+                  ? dashboard?.mode === "real"
+                    ? "Мониторинг коллекторов"
+                    : "Всё под контролем"
+                  : title}
+              </h1>
               <p>
                 {page === "overview"
                   ? "Выявляйте риски заранее. Планируйте обслуживание вовремя."
@@ -265,7 +264,7 @@ export default function App() {
               onClick={() =>
                 void action(
                   () => api("/predictions/run", { method: "POST" }),
-                  "Прогнозы пересчитаны по текущему срезу",
+                  "Прогнозы обновлены",
                 )
               }
             >
@@ -290,36 +289,22 @@ export default function App() {
             <div className="loading">
               <div className="loading-dot" />
               <h3>Подключаем систему мониторинга</h3>
-              <p>
-                Первый запуск включает обучение двух демонстрационных моделей.
-              </p>
+              <p>Загружаем прогнозы и события.</p>
             </div>
           ) : (
             <>
-              <div className="data-banner">
+              {dashboard.mode === "demo" && <div className="data-banner">
                 <div>
                   <Database size={15} />
-                  <strong>
-                    {dashboard.mode === "demo"
-                      ? "Демонстрационный контур"
-                      : "Исторический срез"}
-                  </strong>
-                  <span>
-                    {dashboard.mode === "demo"
-                      ? "Синтетические данные · показатели не отражают реальные объекты"
-                      : "Прогноз по журналам; данные не обновляются в реальном времени"}
-                  </span>
+                  <strong>Демонстрационный режим</strong>
                 </div>
-                <button onClick={() => setPage("quality")}>
-                  О данных <ArrowRight size={14} />
-                </button>
-              </div>
+              </div>}
               {page === "overview" && (
                 <>
                   <div className="section-caption">
                     <span>Оперативная сводка</span>
                     <span>
-                      Срез на {date(dashboard.as_of)}{" "}
+                      Данные на {date(dashboard.as_of)}{" "}
                       {new Date(dashboard.as_of).getFullYear()} · 00:00
                     </span>
                   </div>
@@ -328,7 +313,7 @@ export default function App() {
                       {
                         label: "Объекты под наблюдением",
                         value: dashboard.objects,
-                        sub: "коллекторов в системе",
+                        sub: "объектов под наблюдением",
                         icon: Layers3,
                         color: "green",
                       },
@@ -373,7 +358,11 @@ export default function App() {
                       <div className="card-heading">
                         <div>
                           <h3>Объекты и риски</h3>
-                          <p>Точки внимания на схеме города</p>
+                          <p>
+                            {objects.some((object) => object.latitude !== null)
+                              ? "Точки внимания на схеме города"
+                              : "Приоритет диагностики"}
+                          </p>
                         </div>
                         <button
                           className="text-button"
@@ -438,20 +427,21 @@ export default function App() {
                           </button>
                         ),
                       )}
-                      <div className="info-note">
-                        <ShieldCheck size={18} />
-                        <span>
-                          Прогнозируем сигнал «Неисправен». Физический отказ и
-                          износ требуют проверки.
-                        </span>
-                      </div>
                     </section>
                   </div>
                   <section className="card trend-card">
                     <div className="card-heading">
                       <div>
-                        <h3>Динамика предупреждений</h3>
-                        <p>Количество каналов высокого риска по дням</p>
+                        <h3>
+                          {hasObservations
+                            ? "История сообщений о неисправности"
+                            : "Динамика предупреждений"}
+                        </h3>
+                        <p>
+                          {hasObservations
+                            ? "Сообщения датчиков и оборудования по дням"
+                            : "Количество каналов высокого риска по дням"}
+                        </p>
                       </div>
                       <div className="chart-legend">
                         <span>
@@ -462,13 +452,27 @@ export default function App() {
                           <i style={{ background: "#94adbf" }} />
                           Инфраструктура
                         </span>
-                        <b>{dashboard.trend.length} дней</b>
+                        {hasObservations ? (
+                          <select
+                            aria-label="Период истории"
+                            value={historyDays}
+                            onChange={(event) =>
+                              setHistoryDays(Number(event.target.value))
+                            }
+                          >
+                            <option value={30}>30 дней</option>
+                            <option value={90}>90 дней</option>
+                            <option value={366}>Весь период</option>
+                          </select>
+                        ) : (
+                          <b>{dashboard.trend.length} дней</b>
+                        )}
                       </div>
                     </div>
                     <div className="trend-chart">
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart
-                          data={dashboard.trend}
+                          data={chartData}
                           margin={{ top: 10, right: 10, bottom: 0, left: -25 }}
                         >
                           <defs>
@@ -539,12 +543,17 @@ export default function App() {
                         </AreaChart>
                       </ResponsiveContainer>
                     </div>
+                    {hasObservations && (
+                      <p className="muted tiny chart-note">
+                        {chartData.length > 0 && <>{new Date(chartData[0].date).toLocaleDateString("ru-RU")} — {new Date(chartData[chartData.length - 1].date).toLocaleDateString("ru-RU")}</>}
+                      </p>
+                    )}
                   </section>
                   <section className="card">
                     <div className="card-heading">
                       <div>
                         <h3>В приоритете</h3>
-                        <p>Каналы с наибольшим баллом модели в текущем срезе</p>
+                        <p>Каналы с наибольшей оценкой риска</p>
                       </div>
                       <button
                         className="text-button"
@@ -576,7 +585,7 @@ export default function App() {
                     </div>
                     <a href="/api/predictions/export.csv" className="button">
                       <ArrowDownToLine size={15} />
-                      CSV текущего среза
+                      Скачать CSV
                     </a>
                   </div>
                   <div className="filters">
@@ -584,7 +593,7 @@ export default function App() {
                       <Search size={16} />
                       <input
                         aria-label="Поиск прогноза"
-                        placeholder="Объект, канал, тип…"
+                        placeholder="Объект, канал, тип, система…"
                         value={search}
                         onChange={(e) => {
                           setSearch(e.target.value);
@@ -642,7 +651,7 @@ export default function App() {
                           setOffset(0);
                         }}
                       />
-                      Последний срез
+                      Последние прогнозы
                     </label>
                     <button
                       className="icon-button"
@@ -688,7 +697,7 @@ export default function App() {
                     <div className="card-heading">
                       <div>
                         <h3>Схема объектов</h3>
-                        <p>{objects.length} объектов в текущем наборе данных</p>
+                        <p>{objects.length} объектов под наблюдением</p>
                       </div>
                       <MapPin size={20} />
                     </div>
@@ -846,157 +855,8 @@ export default function App() {
                   )}
                 </section>
               )}
-              {page === "models" && (
-                <>
-                  <div className="model-grid">
-                    {models.map((m) => (
-                      <section className="card model-card" key={m.direction}>
-                        <div className="model-title">
-                          <span className="object-icon">
-                            <Boxes size={21} />
-                          </span>
-                          <span className="badge low">Модель загружена</span>
-                        </div>
-                        <h2>{labels[m.direction]}</h2>
-                        <p>
-                          {m.algorithm} · версия {m.version}
-                        </p>
-                        <div className="model-metrics">
-                          {[
-                            ["Precision", m.test.precision],
-                            ["Recall", m.test.recall],
-                            ["PR-AUC", m.test.pr_auc],
-                          ].map(([l, v]) => (
-                            <div key={String(l)}>
-                              <span>{l}</span>
-                              <strong>{Number(v).toFixed(3)}</strong>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="note">
-                          {m.provenance === "synthetic_demo"
-                            ? "Метрики на синтетическом тесте. Не подтверждают качество на данных кейса."
-                            : m.meets_case_metrics
-                              ? "Целевые Precision и Recall достигнуты для proxy-метки на временном тесте."
-                              : "Целевые Precision > 0.7 и Recall > 0.5 пока не достигнуты одновременно."}
-                        </div>
-                        <dl>
-                          <div>
-                            <dt>Тестовых строк</dt>
-                            <dd>{m.test.rows.toLocaleString("ru-RU")}</dd>
-                          </div>
-                          <div>
-                            <dt>Положительных меток</dt>
-                            <dd>{m.test.positives}</dd>
-                          </div>
-                          <div>
-                            <dt>Ложных предупреждений</dt>
-                            <dd>{m.test.false_positives}</dd>
-                          </div>
-                          <div>
-                            <dt>Признаки / обучение</dt>
-                            <dd>
-                              {m.features.length} /{" "}
-                              {m.training_seconds.toFixed(1)} с
-                            </dd>
-                          </div>
-                        </dl>
-                        <details>
-                          <summary>Контракт признаков</summary>
-                          <div className="feature-tags">
-                            {m.features.map((f) => (
-                              <code key={f}>{f}</code>
-                            ))}
-                          </div>
-                        </details>
-                        <h4>Сравнение на validation</h4>
-                        <div className="candidate-list">
-                          {m.validation_candidates.map((c) => (
-                            <div key={c.algorithm}>
-                              <span>{c.algorithm}</span>
-                              <strong>AP {c.pr_auc.toFixed(3)}</strong>
-                            </div>
-                          ))}
-                        </div>
-                      </section>
-                    ))}
-                  </div>
-                  <div className="info-note">
-                    <Gauge size={20} />
-                    <span>
-                      Порог выбирается на validation. Временные выборки
-                      разделены зазором 48 часов. Тест используется после выбора
-                      модели.
-                    </span>
-                  </div>
-                </>
-              )}
               {page === "quality" && quality && (
-                <>
-                  <section className="card quality-card">
-                    <div className="card-heading">
-                      <div>
-                        <h3>Прозрачность данных</h3>
-                        <p>{quality.notice}</p>
-                      </div>
-                      <Database size={24} />
-                    </div>
-                    <div className="quality-stats">
-                      <div>
-                        <span>Режим</span>
-                        <strong>
-                          {quality.mode === "demo"
-                            ? "Демонстрация"
-                            : "Данные ноутбука"}
-                        </strong>
-                      </div>
-                      <div>
-                        <span>Строк для расчёта</span>
-                        <strong>
-                          {quality.scoring_rows.toLocaleString("ru-RU")}
-                        </strong>
-                      </div>
-                      <div>
-                        <span>Допущено к прогнозу</span>
-                        <strong>
-                          {quality.eligible_rows.toLocaleString("ru-RU")}
-                        </strong>
-                      </div>
-                      <div>
-                        <span>Без оценки</span>
-                        <strong>{quality.unavailable_rows}</strong>
-                      </div>
-                    </div>
-                    <h4>Что означает прогноз</h4>
-                    <p>
-                      Модель использует только прошлую историю сообщений. Цель —
-                      новый эпизод «Неисправен» в интервале от 24 до 48 часов
-                      после момента прогноза. Каналы с уже известной
-                      неисправностью или недостаточной историей не получают
-                      оценку раннего предупреждения.
-                    </p>
-                    <div className="limitations">
-                      {quality.limitations.map((l) => (
-                        <div key={l}>
-                          <CircleHelp size={17} />
-                          <span>{l}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-                  <section className="card quality-card">
-                    <h3>Почему выбраны эти направления</h3>
-                    <p>
-                      Ноутбук содержит разметку неисправности для датчиков,
-                      насосов и вентиляторов. Для пожарного риска нет
-                      проверенной разметки пожаров и связанных графиков горячих
-                      работ. Для оценки физического износа нужны акты
-                      обследований, возраст и факты ремонтов. Текущая модель
-                      инфраструктуры помогает приоритизировать диагностику
-                      насосов и вентиляторов по сигналам.
-                    </p>
-                  </section>
-                </>
+                <DataStatus quality={quality} />
               )}
             </>
           )}
@@ -1004,7 +864,6 @@ export default function App() {
             <span>
               <Layers3 size={13} /> Контур · Предиктивная аналитика
             </span>
-            <span>ЛЦТ 2026 / Кейс 08</span>
           </footer>
         </div>
       </main>

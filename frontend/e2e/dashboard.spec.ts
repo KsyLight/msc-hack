@@ -2,20 +2,33 @@ import { test, expect } from "@playwright/test";
 
 test("dashboard, filters, ticket lifecycle and responsive layout", async ({
   page,
+  request,
 }) => {
   const errors: string[] = [];
   page.on("pageerror", (err) => errors.push(err.message));
+  const health = await (await request.get("/api/health")).json();
+  const real = health.mode === "real";
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "Всё под контролем" }),
+    page.getByRole("heading", {
+      name: real ? "Мониторинг коллекторов" : "Всё под контролем",
+    }),
   ).toBeVisible();
-  await expect(
-    page.getByText("Демонстрационный контур", { exact: true }),
-  ).toBeVisible();
+  if (!real) await expect(page.getByText("Демонстрационный режим", { exact: true })).toBeVisible();
   await expect(page.locator("tbody tr")).toHaveCount(6);
   await expect(page.locator(".recharts-area-curve")).toHaveCount(2);
+  if (real) {
+    await expect(
+      page.getByRole("heading", { name: "История сообщений о неисправности" }),
+    ).toBeVisible();
+    await page
+      .getByRole("combobox", { name: "Период истории" })
+      .selectOption("366");
+    await expect(page.getByRole("combobox", { name: "Период истории" })).toHaveValue("366");
+    await expect(page.locator(".object-ranking button")).toHaveCount(5);
+  }
   await page.screenshot({
-    path: "../reports/dashboard-desktop.png",
+    path: `../reports/dashboard-${health.mode}-desktop.png`,
     fullPage: true,
   });
   await page
@@ -33,6 +46,10 @@ test("dashboard, filters, ticket lifecycle and responsive layout", async ({
   );
   await page.locator("tbody .object-link").first().click();
   await expect(page.getByRole("dialog")).toBeVisible();
+  if (real) {
+    await expect(page.getByRole("dialog")).toContainText("Инженерная система");
+    await expect(page.getByRole("dialog")).toContainText("Название датчика");
+  }
   await page
     .getByRole("textbox", { name: "Комментарий к заявке" })
     .fill("E2E: проверка локального сценария");
@@ -58,24 +75,46 @@ test("dashboard, filters, ticket lifecycle and responsive layout", async ({
       .filter({ hasText: "E2E: проверка локального сценария" })
       .first(),
   ).toContainText("Завершена");
-  await page.getByRole("button", { name: "Модели", exact: true }).click();
-  await expect(page.locator(".model-card")).toHaveCount(2);
   await page
-    .getByRole("button", { name: "Источники данных", exact: true })
+    .getByRole("button", { name: "Состояние данных", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Прозрачность данных" }),
+    page.getByRole("heading", { name: "Доступность прогнозов" }),
   ).toBeVisible();
+  if (real) {
+    await expect(
+      page.getByRole("heading", { name: "Каналы по типам оборудования" }),
+    ).toBeVisible();
+    await expect(page.getByText(/Нет данных за/)).toBeVisible();
+    await page.screenshot({
+      path: "../reports/data-quality-real.png",
+      fullPage: true,
+    });
+  }
   await page
     .getByRole("button", { name: "Обзор системы", exact: true })
     .click();
   await page.setViewportSize({ width: 390, height: 844 });
+  // Verify a fresh mobile load; do not capture the intermediate ResizeObserver frame.
+  await page.reload();
+  await expect(
+    page.getByRole("heading", {
+      name: real ? "Мониторинг коллекторов" : "Всё под контролем",
+    }),
+  ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Обзор системы", exact: true }),
   ).toBeVisible();
   await expect(page.locator(".recharts-area-curve")).toHaveCount(2);
+  await expect
+    .poll(async () =>
+      page
+        .locator(".recharts-wrapper")
+        .evaluate((element) => element.getBoundingClientRect().width),
+    )
+    .toBeLessThan(390);
   await page.screenshot({
-    path: "../reports/dashboard-mobile.png",
+    path: `../reports/dashboard-${health.mode}-mobile.png`,
     fullPage: true,
   });
   expect(

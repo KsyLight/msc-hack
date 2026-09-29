@@ -7,6 +7,9 @@ export interface Prediction {
   object_id: string;
   object_name: string;
   sensor_type: string;
+  system_type: string;
+  sensor_name: string;
+  system_tag: string;
   prediction_time: string;
   target_start: string;
   target_end: string;
@@ -35,6 +38,15 @@ export interface Dashboard {
     total: number;
   }[];
   top_predictions: Prediction[];
+  observations: {
+    date: string;
+    events: number | null;
+    alarms: number | null;
+    fault_messages: number | null;
+    sensor: number | null;
+    infrastructure: number | null;
+    active_channels: number | null;
+  }[];
 }
 export interface Collector {
   id: string;
@@ -76,6 +88,26 @@ export interface Quality {
   eligible_rows: number;
   unavailable_rows: number;
   limitations: string[];
+  source_snapshot_channels?: number;
+  excluded_snapshot_channels?: number;
+  missing_channel_metadata?: number;
+  missing_object_metadata?: number;
+  coverage?: {
+    direction: Direction;
+    sensor_type: string;
+    channels: number;
+    eligible: number;
+  }[];
+  observations?: {
+    start: string;
+    end: string;
+    days: number;
+    events: number;
+    alarms: number;
+    fault_messages: number;
+    missing_days: string[];
+    unmapped_channel_days: number;
+  };
 }
 export interface Ticket {
   id: number;

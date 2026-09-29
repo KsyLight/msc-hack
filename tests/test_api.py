@@ -82,3 +82,15 @@ def test_generate_tickets_does_not_duplicate_open_requests(client):
     a = client.post("/api/tickets/generate").json()
     b = client.post("/api/tickets/generate").json()
     assert {r["id"] for r in a["items"]} == {r["id"] for r in b["items"]}
+
+
+def test_observations_keep_missing_days_as_gaps(client, app, monkeypatch):
+    history = pd.DataFrame({"date": [pd.Timestamp("2026-06-01"), pd.Timestamp("2026-06-03")],
+                            "events": [8, 12], "sensor": [1, 2], "infrastructure": [0, 3]})
+    monkeypatch.setattr(app.state.service, "observations", history)
+    result = client.get("/api/observations?days=3").json()
+    assert result["kind"] == "observed_messages"
+    assert len(result["items"]) == 3
+    assert result["items"][1] == {"date": "2026-06-02", "events": None, "sensor": None, "infrastructure": None}
+    assert client.get("/api/observations?days=1").json()["items"][0]["events"] == 12
+    assert client.get("/api/observations?days=0").status_code == 422

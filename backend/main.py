@@ -67,7 +67,13 @@ def create_app(settings=None):
                 "unavailable": sum(r["risk"] == "unavailable" for r in rows), "open_tickets": tickets,
                 "directions": {d: {"total": sum(r["direction"] == d for r in rows), "high": sum(r["direction"] == d and r["risk"] == "high" for r in rows)} for d in service().models},
                 "trend": service().trend(),
+                "observations": service().observation_history(),
                 "top_predictions": rows[:6]}
+
+    @app.get("/api/observations", tags=["Dashboard"])
+    def observations(days: int = Query(366, ge=1, le=3660)):
+        return {"kind": "observed_messages", "description": "Суточные сообщения журналов; повторные сообщения не являются отдельными поломками",
+                "items": service().observation_history(days)}
 
     @app.get("/api/objects", tags=["Objects"], response_model=list[Collector])
     def objects():
@@ -100,7 +106,7 @@ def create_app(settings=None):
     @app.get("/api/predictions/export.csv", tags=["Predictions"])
     def export():
         output = io.StringIO()
-        fields = ["id", "direction", "entity_id", "object_name", "sensor_type", "prediction_time", "target_start", "target_end", "score", "risk", "model_version", "mode"]
+        fields = ["id", "direction", "entity_id", "object_name", "sensor_type", "system_type", "sensor_name", "system_tag", "prediction_time", "target_start", "target_end", "score", "risk", "model_version", "mode"]
         writer = csv.DictWriter(output, fieldnames=fields, extrasaction="ignore")
         writer.writeheader()
         for row in service().predictions():

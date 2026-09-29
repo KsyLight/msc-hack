@@ -72,11 +72,13 @@ def train_model(splits: dict, features: list[str], target: str, direction: str, 
     }
     results, fitted = [], {}
     for name, model in candidates.items():
+        print(f"Fitting {direction}/{name} on {len(x):,} rows, {len(features)} features", flush=True)
         kwargs = {"logisticregression__sample_weight": weights} if name == "LogisticRegression" else {"sample_weight": weights}
         model.fit(x, train[target], **kwargs)
         vp = model.predict_proba(vx)[:, 1]
         threshold = select_threshold(val[target], vp, val.get("sample_weight"))
         results.append({"algorithm": name, "threshold": threshold, **metrics(val[target], vp, threshold, val.get("sample_weight"))})
+        print(f"Validation {direction}/{name}: AP={results[-1]['pr_auc']:.4f}, precision={results[-1]['precision']:.4f}, recall={results[-1]['recall']:.4f}", flush=True)
         fitted[name] = model
     best = max(results, key=lambda m: m["pr_auc"])
     model = fitted[best["algorithm"]]

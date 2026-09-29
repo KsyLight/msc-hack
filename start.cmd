@@ -5,8 +5,11 @@ if not "%~1"=="" if /I not "%~1"=="demo" if /I not "%~1"=="real" (
   echo Usage: start.cmd [demo^|real]
   exit /b 2
 )
-set "APP_MODE=demo"
-if /I "%~1"=="real" set "APP_MODE=real"
+if not defined APP_MODE (
+  set "APP_MODE=demo"
+  if exist "runtime\real\dataset.json" set "APP_MODE=real"
+)
+if not "%~1"=="" set "APP_MODE=%~1"
 if not defined APP_PORT set "APP_PORT=8000"
 set "OMP_NUM_THREADS=4"
 set "OPENBLAS_NUM_THREADS=4"

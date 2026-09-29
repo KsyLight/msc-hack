@@ -31,6 +31,8 @@ class RiskService:
         self.data.prediction_time = pd.to_datetime(self.data.prediction_time)
         self.objects = json.loads((root / "objects.json").read_text(encoding="utf-8"))
         self.dataset = json.loads((root / "dataset.json").read_text(encoding="utf-8"))
+        observations_file = root / "observations.parquet"
+        self.observations = pd.read_parquet(observations_file) if observations_file.exists() else pd.DataFrame()
         self.store = Store(settings.database)
         self.run()
 
@@ -58,6 +60,8 @@ class RiskService:
             results.append({"id": hashlib.sha256(key.encode()).hexdigest()[:24], "direction": direction,
                             "entity_id": str(row.entity_id), "object_id": str(row.object_id),
                             "object_name": names.get(str(row.object_id), str(row.object_id)), "sensor_type": str(row.sensor_type),
+                            "system_type": str(row.get("system_type", "")), "sensor_name": str(row.get("sensor_name", "")),
+                            "system_tag": str(row.get("system_tag", "")),
                             "prediction_time": t.isoformat(), "target_start": (t + pd.Timedelta(hours=24)).isoformat(),
                             "target_end": (t + pd.Timedelta(hours=48)).isoformat(),
                             "score": None if np.isnan(score) else round(float(score), 6), "risk": risk,
@@ -100,7 +104,7 @@ class RiskService:
                 where += f" AND {column}=?"
                 params.append(value)
         if search:
-            where += " AND instr(casefold(json_extract(payload,'$.object_name') || ' ' || entity_id || ' ' || json_extract(payload,'$.sensor_type')),?) > 0"
+            where += " AND instr(casefold(json_extract(payload,'$.object_name') || ' ' || entity_id || ' ' || json_extract(payload,'$.sensor_type') || ' ' || coalesce(json_extract(payload,'$.system_type'),'') || ' ' || coalesce(json_extract(payload,'$.sensor_name'),'') || ' ' || coalesce(json_extract(payload,'$.system_tag'),'')),?) > 0"
             params.append(search.casefold())
         with self.store.connect() as conn:
             conn.create_function("casefold", 1, lambda s: s.casefold() if s else "")
@@ -118,6 +122,18 @@ class RiskService:
                 sum(direction='infrastructure' AND json_extract(payload,'$.risk')='high') AS infrastructure
                 FROM predictions WHERE {where} GROUP BY date ORDER BY date""", params).fetchall()
         return [dict(row) for row in rows]
+
+    def observation_history(self, days=366):
+        if self.observations.empty:
+            return []
+        frame = self.observations.copy()
+        frame.date = pd.to_datetime(frame.date)
+        # Missing journal days are gaps, never zeros or interpolated observations.
+        calendar = pd.date_range(frame.date.min(), frame.date.max(), name="date")
+        frame = frame.set_index("date").reindex(calendar).reset_index()
+        frame = frame[frame.date >= frame.date.max() - pd.Timedelta(days=days - 1)]
+        frame.date = frame.date.dt.strftime("%Y-%m-%d")
+        return frame.astype(object).where(pd.notna(frame), None).to_dict("records")
 
     def create_ticket(self, prediction_id, comment="", automatic=False):
         now = datetime.now(timezone.utc).isoformat()

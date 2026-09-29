@@ -6,12 +6,9 @@ import shutil
 import tempfile
 import duckdb
 import pandas as pd
-from backend.ml.contracts import SENSOR_FEATURES, SENSOR_PATTERN, INFRASTRUCTURE_PATTERN, TARGETS, validate_features
+from backend.ml.contracts import SENSOR_PATTERN, INFRASTRUCTURE_PATTERN
 from backend.ml.training import train_model
-
-
-def quote(path):
-    return "'" + str(path).replace("\\", "/").replace("'", "''") + "'"
+from scripts.handoff import quote, contract, audit, export_daily
 
 
 def read_split(con, path, features, pattern, target, max_train_rows=None):
@@ -30,28 +27,26 @@ def read_split(con, path, features, pattern, target, max_train_rows=None):
     return con.execute(query, [pattern]).fetchdf()
 
 
-def prepare(handoff: Path, runtime: Path, max_train_rows=400000):
-    spec = json.loads((handoff / "feature_list.json").read_text(encoding="utf-8"))
-    validate_features(spec["features"])
-    if spec["target"] != "target_fault_24_48h" or spec.get("target_window") != "[t+24h,t+48h)":
-        raise ValueError("Expected notebook target with at least 24h lead")
-    # Count-only baseline: no mixed numeric units and no current metadata in X.
-    features = [f for f in SENSOR_FEATURES if f in spec["features"]]
-    validate_features(features)
+def prepare(handoff: Path, runtime: Path, max_train_rows=1000000):
+    ml, spec, features = contract(handoff)
     runtime.mkdir(parents=True, exist_ok=True)
     con = duckdb.connect()
     con.execute("SET memory_limit='1500MB'")
     con.execute("SET threads=4")
     patterns = {"sensor": SENSOR_PATTERN, "infrastructure": INFRASTRUCTURE_PATTERN}
     try:
+        report = audit(con, ml, spec, features)
+        (runtime / "handoff_audit.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
         for direction, pattern in patterns.items():
             splits = {}
             for split in ("train", "validation", "test"):
-                name = "train_compact" if split == "train" and (handoff / "ml_ready/train_compact.parquet").exists() else split
-                splits[split] = read_split(con, handoff / "ml_ready" / f"{name}.parquet", features, pattern, spec["target"], max_train_rows if split == "train" else None)
+                name = "train_compact" if split == "train" and (ml / "train_compact.parquet").exists() else split
+                splits[split] = read_split(con, ml / f"{name}.parquet", features, pattern, spec["target"], max_train_rows if split == "train" else None)
                 print(f"{direction} {split}: {len(splits[split]):,} rows", flush=True)
-            train_model(splits, features, spec["target"], direction, runtime / "models", "notebook_handoff")
-        latest_file = handoff / "ml_ready/scoring_latest.parquet"
+            bundle = train_model(splits, features, spec["target"], direction, runtime / "models", "notebook_handoff")
+            print(f"{direction}: {bundle['metadata']['algorithm']}; test={bundle['metadata']['test']}", flush=True)
+            del splits, bundle
+        latest_file = ml / "scoring_latest.parquet"
         schema = {r[0] for r in con.execute(f"DESCRIBE SELECT * FROM read_parquet({quote(latest_file)})").fetchall()}
         required = {"channel_id", "object_id_current", "sensor_type_current", "prediction_time", "at_risk_with_history", "last_explicit_state", *features}
         if required - schema:
@@ -79,6 +74,16 @@ def prepare(handoff: Path, runtime: Path, max_train_rows=400000):
         data = pd.concat(scoring, ignore_index=True)
         if data.empty:
             raise ValueError("No matching channels in latest scoring snapshot")
+        channels_file = handoff / "channels_current.parquet"
+        if channels_file.exists():
+            channels = con.execute(f"""SELECT CAST(ид_канала_данных AS VARCHAR) AS entity_id,
+                тип_инж_системы AS system_type, название_датчика AS sensor_name,
+                тег_инженерной_системы AS system_tag FROM read_parquet({quote(channels_file)})""").fetchdf()
+            data = data.merge(channels, how="left", on="entity_id", validate="many_to_one")
+        for field in ("system_type", "sensor_name", "system_tag"):
+            if field not in data:
+                data[field] = ""
+            data[field] = data[field].fillna("")
         data.to_parquet(runtime / "scoring.parquet", index=False)
         objects_file = handoff / "objects_current.parquet"
         names = {}
@@ -88,9 +93,16 @@ def prepare(handoff: Path, runtime: Path, max_train_rows=400000):
         objects = [{"id": oid, "name": str(names.get(oid, f"Объект {oid}")), "district": "Не указан",
                     "latitude": None, "longitude": None, "coordinate_source": "unavailable"} for oid in sorted(data.object_id.unique())]
         (runtime / "objects.json").write_text(json.dumps(objects, ensure_ascii=False), encoding="utf-8")
+        daily = export_daily(con, handoff, runtime, patterns, data.prediction_time.max())
+        coverage = data.groupby(["direction", "sensor_type"], dropna=False).agg(channels=("entity_id", "nunique"), eligible=("eligible", "sum")).reset_index().to_dict("records")
         metadata = {"mode": "real", "provenance": "notebook_handoff", "source": str(handoff.resolve()),
                     "pipeline_version": spec.get("pipeline_version"), "features": features, "max_train_rows": max_train_rows,
                     "validation_test_sampling": "none", "rows": len(data),
+                    "contract_source": spec["contract_source"], "coverage": coverage, "observations": daily,
+                    "source_snapshot_channels": report["splits"]["scoring_latest"]["row_count"],
+                    "excluded_snapshot_channels": report["splits"]["scoring_latest"]["row_count"] - data.entity_id.nunique(),
+                    "missing_channel_metadata": int(data.system_type.eq("").sum()),
+                    "missing_object_metadata": sum(oid not in names for oid in data.object_id.unique()),
                     "notice": "Исторический срез журналов. Цель — сообщение «Неисправен» через 24–48 ч. Координаты не предоставлены."}
         (runtime / "dataset.json").write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8")
     finally:
@@ -101,7 +113,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--handoff", type=Path, required=True)
     parser.add_argument("--runtime", type=Path, default=Path("runtime"))
-    parser.add_argument("--max-train-rows", type=int, default=400000)
+    parser.add_argument("--max-train-rows", type=int, default=1000000)
     args = parser.parse_args()
     if args.max_train_rows < 1:
         parser.error("--max-train-rows must be positive")

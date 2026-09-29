@@ -20,6 +20,9 @@ class PredictionInput(BaseModel):
     entity_id: str = Field(min_length=1, max_length=100)
     object_id: str = Field(min_length=1, max_length=100)
     sensor_type: str = Field(min_length=1, max_length=150)
+    system_type: str = Field(default="", max_length=200)
+    sensor_name: str = Field(default="", max_length=500)
+    system_tag: str = Field(default="", max_length=200)
     prediction_time: datetime
     eligible: bool
     last_explicit_state: str = "unknown"
@@ -43,6 +46,9 @@ class Prediction(BaseModel):
     object_id: str
     object_name: str
     sensor_type: str
+    system_type: str = ""
+    sensor_name: str = ""
+    system_tag: str = ""
     prediction_time: datetime
     target_start: datetime
     target_end: datetime

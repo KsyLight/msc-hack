@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MapPin, Minus, Plus } from "lucide-react";
+import { MapPin, Minus, Plus, ChevronRight } from "lucide-react";
 import { Collector } from "../api";
 
 export default function NetworkMap({
@@ -131,14 +131,27 @@ export default function NetworkMap({
           </div>
         </>
       ) : (
-        <div className="map-empty">
-          <MapPin size={28} />
-          <strong>Координаты не предоставлены</strong>
-          <span>
-            Объекты доступны в реестре ниже.
-            <br />
-            Для карты нужен справочник координат.
-          </span>
+        <div className="object-ranking">
+          {[...objects]
+            .sort(
+              (a, b) =>
+                b.high_risk - a.high_risk ||
+                (b.max_score ?? -1) - (a.max_score ?? -1),
+            )
+            .slice(0, 5)
+            .map((object) => (
+              <button key={object.id} onClick={() => onSelect(object.id)}>
+                <MapPin size={17} />
+                <span>
+                  <strong>{object.name}</strong>
+                  <small>{object.channels} каналов под наблюдением</small>
+                </span>
+                <b className={`badge ${object.high_risk ? "high" : "low"}`}>
+                  {object.high_risk} высокого риска
+                </b>
+                <ChevronRight size={15} />
+              </button>
+            ))}
         </div>
       )}
     </div>

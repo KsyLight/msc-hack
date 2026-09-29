@@ -1,0 +1,28 @@
+{
+  "health": {
+    "status": "ok",
+    "mode": "real",
+    "models": [
+      "sensor",
+      "infrastructure"
+    ]
+  },
+  "refresh": {
+    "scored": 6145,
+    "duration_seconds": 0.693,
+    "as_of": "2026-07-01T00:00:00"
+  },
+  "prediction_count": 6145,
+  "csv_rows": 6145,
+  "observed_calendar_days": 181,
+  "missing_day": {
+    "date": "2026-06-01",
+    "events": null,
+    "alarms": null,
+    "fault_messages": null,
+    "active_channels": null,
+    "sensor": null,
+    "infrastructure": null
+  },
+  "metadata_search": "passed"
+}

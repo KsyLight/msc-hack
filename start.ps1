@@ -1,6 +1,9 @@
-param([ValidateSet('demo','real')][string]$Mode = 'demo', [int]$Port = 8000)
+param([ValidateSet('demo','real')][string]$Mode, [int]$Port = 8000)
 $ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $PSScriptRoot
+if (-not $Mode) {
+    $Mode = if ($env:APP_MODE) { $env:APP_MODE } elseif (Test-Path -LiteralPath 'runtime/real/dataset.json') { 'real' } else { 'demo' }
+}
 $env:APP_MODE = $Mode
 $env:OMP_NUM_THREADS = '4'
 $env:OPENBLAS_NUM_THREADS = '4'

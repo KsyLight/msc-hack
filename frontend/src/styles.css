@@ -727,6 +727,52 @@ h1 {
 .trend-card {
   margin-bottom: 20px;
 }
+.chart-note {
+  margin: 0 22px 18px;
+  line-height: 1.6;
+}
+.object-ranking {
+  padding: 4px 20px 12px;
+  background: #f8faf7;
+}
+.object-ranking button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 15px 0;
+  text-align: left;
+  border-bottom: 1px solid #e5ebe3;
+  color: #50735e;
+}
+.object-ranking button:hover strong {
+  text-decoration: underline;
+}
+.object-ranking button > span {
+  flex: 1;
+  min-width: 0;
+}
+.object-ranking strong {
+  display: block;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.object-ranking small {
+  display: block;
+  font-size: 10px;
+  color: #8b9885;
+  margin-top: 5px;
+}
+.object-ranking .badge {
+  font-size: 9px;
+  white-space: nowrap;
+}
+.object-ranking p {
+  color: #87937f;
+  font-size: 10px;
+  line-height: 1.6;
+  margin-top: 12px;
+}
 .trend-chart {
   height: 170px;
   padding: 0 24px 10px;
